@@ -59,6 +59,101 @@ final class TribeService: ObservableObject {
         return hubUsers.map(mapToUser)
     }
 
+    // MARK: - Stories
+
+    /// All currently-active stories across the network. Phase 4 may
+    /// trim to the follow graph; for now everyone's active stories
+    /// surface so the demo feels populated.
+    func stories(limit: Int = 100) async throws -> [Story] {
+        let raw = try await api.fetchStories(limit: limit)
+        return raw.map(mapToStory)
+    }
+
+    /// One author's currently-active stories, oldest-first.
+    func stories(forUserTID tid: String) async throws -> [Story] {
+        let raw = try await api.fetchStories(forTID: tid)
+        return raw.map(mapToStory)
+    }
+
+    /// Author-only "seen by" list for a story. Hub 403s when the
+    /// requester isn't the story's author — Swift surfaces that as a
+    /// thrown HubError.
+    func storyViewers(_ story: Story) async throws -> [HubStoryViewer] {
+        let (_, tid, _) = try requireSignedIn()
+        guard let hash = story.hash else { return [] }
+        return try await api.fetchStoryViewers(storyHash: hash, viewerTID: tid)
+    }
+
+    /// Fires a STORY_VIEW envelope. Idempotent — the hub keeps the
+    /// first view per (story_hash, viewer_tid), later calls are a
+    /// no-op at the storage layer.
+    func viewStory(_ story: Story) async throws {
+        let (appKey, tid, _) = try requireSignedIn()
+        guard let hash = story.hash else { return }
+        _ = try await api.viewStory(storyHash: hash, as: appKey, tid: tid)
+    }
+
+    /// Upload the image, then publish STORY_ADD. caption and music
+    /// optional; the hub stamps a 24h expiry server-side so the client
+    /// can't override TTL.
+    @discardableResult
+    func publishStory(
+        image: (data: Data, contentType: String),
+        caption: String? = nil,
+        music: String? = nil
+    ) async throws -> String {
+        let (appKey, tid, _) = try requireSignedIn()
+        let mediaHash = try await api.uploadMedia(
+            data: image.data,
+            contentType: image.contentType,
+            filename: "story.jpg"
+        )
+        let hash = try await api.publishStory(
+            mediaHash: mediaHash,
+            as: appKey,
+            tid: tid,
+            caption: caption,
+            music: music
+        )
+        feedRevision &+= 1
+        return hash
+    }
+
+    // MARK: - Reels
+
+    /// Paginated feed of reels (TWEET_ADD with post_kind='reel').
+    func reels(limit: Int = 20) async throws -> [Reel] {
+        let tweets = try await api.fetchReels(limit: limit)
+        return tweets.compactMap(mapToReel)
+    }
+
+    /// Upload the video, then publish a TWEET_ADD with
+    /// post_kind='reel'. caption + audioTitle optional.
+    @discardableResult
+    func publishReel(
+        video: (data: Data, contentType: String),
+        caption: String = "",
+        audioTitle: String? = nil,
+        location: String? = nil
+    ) async throws -> String {
+        let (appKey, tid, _) = try requireSignedIn()
+        let mediaHash = try await api.uploadMedia(
+            data: video.data,
+            contentType: video.contentType,
+            filename: "reel.mp4"
+        )
+        let hash = try await api.publishReel(
+            videoEmbed: "media:\(mediaHash)",
+            as: appKey,
+            tid: tid,
+            caption: caption,
+            audioTitle: audioTitle,
+            location: location
+        )
+        feedRevision &+= 1
+        return hash
+    }
+
     // MARK: - Notifications
 
     func notifications(tid: String, limit: Int = 50) async throws -> [AppNotification] {
@@ -244,6 +339,52 @@ final class TribeService: ObservableObject {
             followingCount: u.followingCount,
             isVerified: false,
             isFollowing: false
+        )
+    }
+
+    /// HubStory → view-model Story. Resolves the media URL through
+    /// HubClient so the path survives hub IP changes.
+    private func mapToStory(_ s: HubStory) -> Story {
+        let author = User(
+            tid: s.authorTid,
+            username: s.username ?? "tid\(s.authorTid)",
+            displayName: s.username ?? "TID #\(s.authorTid)",
+            avatarURL: s.pfpUrl.flatMap { api.resolveMediaURL($0) }
+        )
+        return Story(
+            hash: s.hash,
+            author: author,
+            imageURL: api.resolveMediaURL("media:\(s.mediaHash)"),
+            caption: s.caption,
+            music: s.music,
+            createdAt: s.createdAt,
+            expiresAt: s.expiresAt,
+            isViewed: false
+        )
+    }
+
+    /// Tweet (post_kind='reel') → view-model Reel. Drops tweets
+    /// without any embed since there's no video to play.
+    private func mapToReel(_ tweet: Tweet) -> Reel? {
+        guard let firstEmbed = tweet.embeds?.first,
+              let videoURL = api.resolveMediaURL(firstEmbed)
+        else { return nil }
+        let author = User(
+            tid: tweet.tid,
+            username: tweet.username ?? "tid\(tweet.tid)",
+            displayName: tweet.username ?? "TID #\(tweet.tid)"
+        )
+        return Reel(
+            hash: tweet.hash,
+            author: author,
+            videoURL: videoURL,
+            thumbnailURL: nil,
+            caption: tweet.text ?? "",
+            likesCount: 0,
+            commentsCount: tweet.replyCount ?? 0,
+            sharesCount: 0,
+            audioTitle: tweet.audioTitle ?? "Original audio",
+            isLiked: false
         )
     }
 

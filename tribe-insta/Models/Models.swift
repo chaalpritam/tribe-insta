@@ -45,22 +45,37 @@ struct User: Identifiable, Hashable {
 
 struct Story: Identifiable, Hashable {
     let id: UUID
+    /// Protocol envelope hash when backed by a STORY_ADD on the hub.
+    /// nil for mock data. Phase 3 viewStory needs this to address the
+    /// right target.
+    var hash: String?
     var author: User
     var imageURL: URL?
+    var caption: String?
+    var music: String?
     var createdAt: Date
+    var expiresAt: Date?
     var isViewed: Bool
 
     init(
         id: UUID = UUID(),
+        hash: String? = nil,
         author: User,
         imageURL: URL? = nil,
+        caption: String? = nil,
+        music: String? = nil,
         createdAt: Date = Date(),
+        expiresAt: Date? = nil,
         isViewed: Bool = false
     ) {
         self.id = id
+        self.hash = hash
         self.author = author
         self.imageURL = imageURL
+        self.caption = caption
+        self.music = music
         self.createdAt = createdAt
+        self.expiresAt = expiresAt
         self.isViewed = isViewed
     }
 }
@@ -135,7 +150,13 @@ struct Post: Identifiable, Hashable {
 
 struct Reel: Identifiable, Hashable {
     let id: UUID
+    /// Protocol content hash. Phase 3 — set when the reel is backed by
+    /// a TWEET_ADD with post_kind='reel' on the hub.
+    var hash: String?
     var author: User
+    /// The video URL served from /v1/media/<hash>. Phase 3 wires the
+    /// SwiftUI VideoPlayer in ReelCard against this.
+    var videoURL: URL?
     var thumbnailURL: URL?
     var caption: String
     var likesCount: Int
@@ -146,7 +167,9 @@ struct Reel: Identifiable, Hashable {
 
     init(
         id: UUID = UUID(),
+        hash: String? = nil,
         author: User,
+        videoURL: URL? = nil,
         thumbnailURL: URL? = nil,
         caption: String,
         likesCount: Int = 0,
@@ -156,7 +179,9 @@ struct Reel: Identifiable, Hashable {
         isLiked: Bool = false
     ) {
         self.id = id
+        self.hash = hash
         self.author = author
+        self.videoURL = videoURL
         self.thumbnailURL = thumbnailURL
         self.caption = caption
         self.likesCount = likesCount
