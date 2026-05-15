@@ -25,6 +25,7 @@
 		6532D713B99F89900DA11804 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB730953EADBADA4D3DA29EB /* SearchView.swift */; };
 		65938C69F08655DF99C7F4A0 /* CreatePostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F1DAB1F2BA669A5A40B402 /* CreatePostView.swift */; };
 		7E2B916BB3DE4259782C4549 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEB8015AC387871EE32BAAF3 /* Models.swift */; };
+		8096ED1EE93EC518954E966E /* StoryViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A23AA6166BA75C4602DC265 /* StoryViewer.swift */; };
 		8A0AD0595E2F7350E96D25FF /* PostCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE07FBDAF932C8EC5EC80125 /* PostCardView.swift */; };
 		9471EACBA29A99EA1065F7C0 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97C895D159D7EA18448292C2 /* OnboardingView.swift */; };
 		96FC8170AA83A1ECE22DA6EF /* Endpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366E13BF5ABBADAB8DD0D734 /* Endpoints.swift */; };
@@ -57,6 +58,7 @@
 		19EB8D84E2D97EE898BDDA85 /* InteractionCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionCache.swift; sourceTree = "<group>"; };
 		1A771F656A1073AF6D68CCC4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1DD0C90AC138518A4CB9D48A /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
+		2A23AA6166BA75C4602DC265 /* StoryViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryViewer.swift; sourceTree = "<group>"; };
 		2BF18C41C8AF4264D9D5D209 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
 		33C8C449589D7E5DAD3E7395 /* HubUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubUser.swift; sourceTree = "<group>"; };
 		366E13BF5ABBADAB8DD0D734 /* Endpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Endpoints.swift; sourceTree = "<group>"; };
@@ -226,6 +228,14 @@
 			path = Reels;
 			sourceTree = "<group>";
 		};
+		7A237CF39A02890625234B7D /* Stories */ = {
+			isa = PBXGroup;
+			children = (
+				2A23AA6166BA75C4602DC265 /* StoryViewer.swift */,
+			);
+			path = Stories;
+			sourceTree = "<group>";
+		};
 		8A09D0E39C09581703F5FF69 /* Search */ = {
 			isa = PBXGroup;
 			children = (
@@ -313,6 +323,7 @@
 				747702F31219E3D1E9EA25F2 /* Root */,
 				8A09D0E39C09581703F5FF69 /* Search */,
 				D55CD5D7452D974D0208846D /* Settings */,
+				7A237CF39A02890625234B7D /* Stories */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -424,6 +435,7 @@
 				6532D713B99F89900DA11804 /* SearchView.swift in Sources */,
 				3CBB1D737F7C77881134351C /* SettingsView.swift in Sources */,
 				51FB05FF22FE26D93F6F78E5 /* StoriesBar.swift in Sources */,
+				8096ED1EE93EC518954E966E /* StoryViewer.swift in Sources */,
 				F95850A5D1F31CD25FC85F92 /* TribeService.swift in Sources */,
 				B24289EFDCA921F1B5876743 /* Tweet.swift in Sources */,
 				DE5E092EA86F5E02B4830063 /* tribe_instaApp.swift in Sources */,
