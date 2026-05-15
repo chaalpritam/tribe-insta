@@ -21,6 +21,7 @@ targets:
     platform: iOS
     sources:
       - path: tribe-insta
+      - path: Sources
     settings:
       base:
         PRODUCT_NAME: "$(TARGET_NAME)"
