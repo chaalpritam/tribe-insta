@@ -11,6 +11,11 @@ import SwiftUI
 /// continue to deal in view models only.
 @MainActor
 final class TribeService: ObservableObject {
+    /// Bumps every time a write that the feed cares about lands —
+    /// publishPhotoPost, deleteTweet, etc. FeedView observes this so
+    /// the new post shows up without a manual pull-to-refresh.
+    @Published private(set) var feedRevision: Int = 0
+
     private let state: AppState
 
     init(state: AppState) {
@@ -163,7 +168,7 @@ final class TribeService: ObservableObject {
             )
             mediaRefs.append("media:\(hash)")
         }
-        return try await api.publishTweet(
+        let hash = try await api.publishTweet(
             text: caption,
             as: appKey,
             tid: tid,
@@ -171,6 +176,8 @@ final class TribeService: ObservableObject {
             channelId: nil,
             embeds: mediaRefs
         )
+        feedRevision &+= 1
+        return hash
     }
 
     // MARK: - Write helpers
