@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct tribe_instaApp: App {
+    @StateObject private var appState = AppState()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(appState)
+                .environmentObject(TribeService(state: appState))
         }
     }
 }
