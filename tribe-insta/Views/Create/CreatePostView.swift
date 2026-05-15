@@ -1,5 +1,12 @@
 import SwiftUI
 
+/// Compose-post sheet.
+///
+/// Phase 1 doesn't wire writes yet — the layout previews the eventual
+/// surface (photo picker, caption, tag/location options) but the Share
+/// button is disabled with a banner that explains why. Phase 2 lifts
+/// `Sources/API/Publish.swift` from tribe-ios, then this sheet runs
+/// HubClient.uploadMedia + publishTweet(embeds:).
 struct CreatePostView: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -9,6 +16,7 @@ struct CreatePostView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
+                    phaseBanner
                     placeholder
 
                     VStack(alignment: .leading, spacing: 6) {
@@ -18,9 +26,10 @@ struct CreatePostView: View {
                             .padding(10)
                             .background(Color(.secondarySystemBackground),
                                         in: RoundedRectangle(cornerRadius: 10))
+                            .disabled(true)
                     }
 
-                    optionsList
+                    optionsList.disabled(true)
                 }
                 .padding(16)
             }
@@ -33,9 +42,28 @@ struct CreatePostView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Share") { dismiss() }
                         .fontWeight(.semibold)
+                        .disabled(true)
                 }
             }
         }
+    }
+
+    private var phaseBanner: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "hammer")
+                .font(.callout)
+                .foregroundStyle(.orange)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Posting lands in Phase 2")
+                    .font(.subheadline).fontWeight(.semibold)
+                Text("This sheet's the layout preview. Photo picker → hub upload → signed envelope is the next chunk of work.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+        }
+        .padding(12)
+        .background(Color.orange.opacity(0.1),
+                    in: RoundedRectangle(cornerRadius: 10))
     }
 
     private var placeholder: some View {
