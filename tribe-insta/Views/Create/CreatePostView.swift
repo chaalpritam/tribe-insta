@@ -2,29 +2,40 @@ import SwiftUI
 import PhotosUI
 import UIKit
 
-/// Compose-post sheet. Pick 1–10 photos, write a caption, share.
+/// Compose sheet with three modes: Post (photo carousel), Story
+/// (single image, 24h auto-expire), Reel (single video).
 ///
 /// Pipeline:
-/// 1. PhotosPicker hands back `PhotosPickerItem`s.
-/// 2. We load each as raw bytes, decode to UIImage, re-encode as JPEG
-///    at quality 0.85. Hub caps uploads at 5 MB; we step quality down
-///    if the encoded payload comes back larger than that.
-/// 3. TribeService.publishPhotoPost uploads each blob to /v1/upload,
-///    collects the hashes, and submits a TWEET_ADD envelope with
-///    `embeds = ["media:<hash>", ...]`.
+/// - Post:   1–10 images → JPEG re-encode → uploadMedia per image →
+///           publishPhotoPost(embeds: ["media:<hash>", ...]).
+/// - Story:  1 image → JPEG re-encode → publishStory(mediaHash:,
+///           caption:, music:). Hub stamps 24h expires_at.
+/// - Reel:   1 video → uploadMedia (video/mp4) → publishReel(
+///           videoEmbed: "media:<hash>", audioTitle:, caption:).
 struct CreatePostView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var service: TribeService
 
+    @State private var mode: Mode = .post
     @State private var pickerItems: [PhotosPickerItem] = []
-    @State private var images: [LoadedImage] = []
+    @State private var photoLoadeds: [LoadedImage] = []
+    @State private var loadedVideo: LoadedVideo? = nil
     @State private var caption: String = ""
-    @State private var isLoadingImages: Bool = false
+    @State private var audioTitle: String = ""
+    @State private var music: String = ""
+    @State private var isLoading: Bool = false
     @State private var isPublishing: Bool = false
     @State private var errorMessage: String?
 
     private static let maxImages = 10
-    private static let hubUploadCap = 5 * 1024 * 1024 // 5 MB
+    private static let hubImageCap = 5 * 1024 * 1024 // 5 MB
+    private static let hubVideoCap = 100 * 1024 * 1024 // 100 MB
+
+    enum Mode: String, CaseIterable, Hashable {
+        case post = "Post"
+        case story = "Story"
+        case reel = "Reel"
+    }
 
     struct LoadedImage: Identifiable {
         let id = UUID()
@@ -32,27 +43,33 @@ struct CreatePostView: View {
         let jpegData: Data
     }
 
+    struct LoadedVideo {
+        let url: URL
+        let data: Data
+        let contentType: String
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    if images.isEmpty {
-                        emptyPicker
-                    } else {
-                        selectedImagesStrip
-                    }
+                    modePicker
+                    mediaSection
                     captionField
+                    if mode == .story {
+                        musicField
+                    } else if mode == .reel {
+                        audioTitleField
+                    }
                     if let errorMessage {
                         Text(errorMessage)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
+                            .font(.footnote).foregroundStyle(.red)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    optionsList
                 }
                 .padding(16)
             }
-            .navigationTitle("New post")
+            .navigationTitle("New " + mode.rawValue.lowercased())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -72,6 +89,7 @@ struct CreatePostView: View {
                 }
             }
         }
+        .onChange(of: mode) { _, _ in resetSelection() }
         .onChange(of: pickerItems) { _, newValue in
             Task { await loadPickerItems(newValue) }
         }
@@ -79,53 +97,153 @@ struct CreatePostView: View {
 
     // MARK: Sections
 
-    private var emptyPicker: some View {
+    private var modePicker: some View {
+        Picker("Mode", selection: $mode) {
+            ForEach(Mode.allCases, id: \.self) { m in
+                Text(m.rawValue).tag(m)
+            }
+        }
+        .pickerStyle(.segmented)
+    }
+
+    @ViewBuilder
+    private var mediaSection: some View {
+        switch mode {
+        case .post:
+            if photoLoadeds.isEmpty { emptyPhotoPicker } else { selectedImagesStrip }
+        case .story:
+            if photoLoadeds.isEmpty { emptyPhotoPicker } else { storyPreview }
+        case .reel:
+            if loadedVideo == nil { emptyVideoPicker } else { videoPreview }
+        }
+    }
+
+    private var emptyPhotoPicker: some View {
         PhotosPicker(
             selection: $pickerItems,
-            maxSelectionCount: Self.maxImages,
+            maxSelectionCount: mode == .story ? 1 : Self.maxImages,
             selectionBehavior: .ordered,
             matching: .images
         ) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(LinearGradient(colors: [.gray.opacity(0.15), .gray.opacity(0.3)],
-                                         startPoint: .top, endPoint: .bottom))
-                VStack(spacing: 10) {
-                    if isLoadingImages {
-                        ProgressView()
-                    } else {
-                        Image(systemName: "photo.on.rectangle.angled").font(.largeTitle)
-                        Text("Tap to choose photos")
-                            .font(.subheadline).foregroundStyle(.secondary)
-                        Text("Up to \(Self.maxImages)")
+            placeholder(
+                icon: "photo.on.rectangle.angled",
+                title: "Tap to choose " + (mode == .story ? "a photo" : "photos"),
+                subtitle: mode == .story ? nil : "Up to \(Self.maxImages)"
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var emptyVideoPicker: some View {
+        PhotosPicker(
+            selection: $pickerItems,
+            maxSelectionCount: 1,
+            selectionBehavior: .ordered,
+            matching: .videos
+        ) {
+            placeholder(
+                icon: "video.fill",
+                title: "Tap to choose a video",
+                subtitle: "Up to 100 MB"
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func placeholder(icon: String, title: String, subtitle: String?) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(LinearGradient(colors: [.gray.opacity(0.15), .gray.opacity(0.3)],
+                                     startPoint: .top, endPoint: .bottom))
+            VStack(spacing: 10) {
+                if isLoading {
+                    ProgressView()
+                } else {
+                    Image(systemName: icon).font(.largeTitle)
+                    Text(title)
+                        .font(.subheadline).foregroundStyle(.secondary)
+                    if let subtitle {
+                        Text(subtitle)
                             .font(.caption2).foregroundStyle(.secondary)
                     }
                 }
             }
-            .aspectRatio(1, contentMode: .fit)
-            .foregroundStyle(.primary)
         }
-        .buttonStyle(.plain)
+        .aspectRatio(1, contentMode: .fit)
+        .foregroundStyle(.primary)
     }
 
     private var selectedImagesStrip: some View {
         VStack(alignment: .leading, spacing: 8) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
-                    ForEach(images) { image in
-                        thumbnail(for: image)
+                    ForEach(photoLoadeds) { image in
+                        photoThumbnail(for: image)
                     }
                     addMoreButton
                 }
                 .padding(.vertical, 2)
             }
-            Text("\(images.count) of \(Self.maxImages) photos")
+            Text("\(photoLoadeds.count) of \(Self.maxImages) photos")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
     }
 
-    private func thumbnail(for image: LoadedImage) -> some View {
+    private var storyPreview: some View {
+        ZStack(alignment: .topTrailing) {
+            if let image = photoLoadeds.first {
+                Image(uiImage: image.preview)
+                    .resizable()
+                    .aspectRatio(9.0/16.0, contentMode: .fit)
+                    .frame(maxWidth: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            Button {
+                photoLoadeds = []
+                pickerItems = []
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.white)
+                    .background(Circle().fill(.black.opacity(0.6)))
+            }
+            .padding(8)
+        }
+    }
+
+    private var videoPreview: some View {
+        ZStack(alignment: .topTrailing) {
+            // No native preview frame extraction wired up for Phase 3 —
+            // just show a placeholder card with the filename + size.
+            RoundedRectangle(cornerRadius: 12)
+                .fill(LinearGradient(colors: [.black, .gray.opacity(0.7)],
+                                     startPoint: .top, endPoint: .bottom))
+                .aspectRatio(9.0/16.0, contentMode: .fit)
+                .overlay(
+                    VStack(spacing: 8) {
+                        Image(systemName: "video.fill")
+                            .font(.largeTitle).foregroundStyle(.white)
+                        if let video = loadedVideo {
+                            Text("\((Double(video.data.count) / 1_048_576).rounded(toPlaces: 1)) MB · \(video.contentType)")
+                                .font(.caption).foregroundStyle(.white.opacity(0.8))
+                        }
+                    }
+                )
+            Button {
+                loadedVideo = nil
+                pickerItems = []
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.white)
+                    .background(Circle().fill(.black.opacity(0.6)))
+            }
+            .padding(8)
+        }
+    }
+
+    private func photoThumbnail(for image: LoadedImage) -> some View {
         ZStack(alignment: .topTrailing) {
             Image(uiImage: image.preview)
                 .resizable()
@@ -133,8 +251,8 @@ struct CreatePostView: View {
                 .frame(width: 96, height: 96)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             Button {
-                if let idx = images.firstIndex(where: { $0.id == image.id }) {
-                    images.remove(at: idx)
+                if let idx = photoLoadeds.firstIndex(where: { $0.id == image.id }) {
+                    photoLoadeds.remove(at: idx)
                     if idx < pickerItems.count {
                         pickerItems.remove(at: idx)
                     }
@@ -166,13 +284,13 @@ struct CreatePostView: View {
                 )
         }
         .buttonStyle(.plain)
-        .disabled(images.count >= Self.maxImages)
+        .disabled(photoLoadeds.count >= Self.maxImages)
     }
 
     private var captionField: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Caption").font(.caption).foregroundStyle(.secondary)
-            TextField("Write a caption…", text: $caption, axis: .vertical)
+            TextField(captionPlaceholder, text: $caption, axis: .vertical)
                 .lineLimit(3...6)
                 .padding(10)
                 .background(Color(.secondarySystemBackground),
@@ -180,108 +298,164 @@ struct CreatePostView: View {
         }
     }
 
-    /// Decorative for Phase 2 — Tag people / Add location / Add music
-    /// / Also share to don't have envelope shapes yet (location lands
-    /// in Phase 3's hub schema bump). Left visible so the surface
-    /// previews what the eventual create flow looks like.
-    private var optionsList: some View {
-        VStack(spacing: 0) {
-            row(icon: "person.crop.rectangle", title: "Tag people")
-            Divider().padding(.leading, 44)
-            row(icon: "mappin.and.ellipse", title: "Add location")
-            Divider().padding(.leading, 44)
-            row(icon: "music.note", title: "Add music")
-            Divider().padding(.leading, 44)
-            row(icon: "square.and.arrow.up", title: "Also share to…")
-        }
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
-        .opacity(0.5)
-        .overlay(alignment: .topTrailing) {
-            Text("Phase 3")
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 8).padding(.vertical, 3)
-                .background(.bar, in: Capsule())
-                .padding(8)
+    private var captionPlaceholder: String {
+        switch mode {
+        case .post: return "Write a caption…"
+        case .story: return "Add a story caption…"
+        case .reel:  return "Write a reel caption…"
         }
     }
 
-    private func row(icon: String, title: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon).frame(width: 24)
-            Text(title)
-            Spacer()
-            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
+    private var musicField: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Music").font(.caption).foregroundStyle(.secondary)
+            TextField("Optional · e.g. \"Track · Artist\"", text: $music)
+                .padding(10)
+                .background(Color(.secondarySystemBackground),
+                            in: RoundedRectangle(cornerRadius: 10))
         }
-        .padding(12)
-        .foregroundStyle(.primary)
+    }
+
+    private var audioTitleField: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Audio title").font(.caption).foregroundStyle(.secondary)
+            TextField("Optional · e.g. \"Original audio\"", text: $audioTitle)
+                .padding(10)
+                .background(Color(.secondarySystemBackground),
+                            in: RoundedRectangle(cornerRadius: 10))
+        }
     }
 
     // MARK: Derived
 
     private var canShare: Bool {
-        !images.isEmpty && !isPublishing && !isLoadingImages
+        guard !isPublishing, !isLoading else { return false }
+        switch mode {
+        case .post, .story: return !photoLoadeds.isEmpty
+        case .reel: return loadedVideo != nil
+        }
     }
 
     // MARK: Actions
 
-    /// Resolve every PhotosPickerItem the user picked into a
-    /// JPEG-encoded payload + UIImage preview. The picker may hand
-    /// us HEIC, PNG, or already-JPEG bytes; re-encoding as JPEG
-    /// ensures (a) the hub accepts the MIME type (its uploader is
-    /// the four common image types — HEIC isn't on the list) and
-    /// (b) we can step quality down to stay under the 5 MB cap.
     @MainActor
     private func loadPickerItems(_ items: [PhotosPickerItem]) async {
         guard !items.isEmpty else {
-            images = []
+            photoLoadeds = []
+            loadedVideo = nil
             return
         }
-        isLoadingImages = true
-        defer { isLoadingImages = false }
-        var loaded: [LoadedImage] = []
-        for item in items {
-            guard let data = try? await item.loadTransferable(type: Data.self),
-                  let uiImage = UIImage(data: data)
-            else { continue }
-            guard let jpeg = Self.encodeJPEG(uiImage) else { continue }
-            loaded.append(LoadedImage(preview: uiImage, jpegData: jpeg))
+        isLoading = true
+        defer { isLoading = false }
+        switch mode {
+        case .reel:
+            guard let first = items.first,
+                  let data = try? await first.loadTransferable(type: Data.self)
+            else {
+                loadedVideo = nil
+                return
+            }
+            guard data.count <= Self.hubVideoCap else {
+                errorMessage = "Video exceeds 100 MB cap."
+                loadedVideo = nil
+                return
+            }
+            loadedVideo = LoadedVideo(
+                url: URL(fileURLWithPath: "(picker)"),
+                data: data,
+                contentType: contentType(for: first) ?? "video/mp4"
+            )
+            photoLoadeds = []
+        case .post, .story:
+            var loaded: [LoadedImage] = []
+            for item in items {
+                guard let data = try? await item.loadTransferable(type: Data.self),
+                      let uiImage = UIImage(data: data)
+                else { continue }
+                guard let jpeg = Self.encodeJPEG(uiImage) else { continue }
+                loaded.append(LoadedImage(preview: uiImage, jpegData: jpeg))
+            }
+            // Story is single-image; clamp.
+            photoLoadeds = mode == .story ? Array(loaded.prefix(1)) : loaded
+            loadedVideo = nil
         }
-        images = loaded
     }
 
     @MainActor
     private func share() async {
-        guard !images.isEmpty else { return }
-        isPublishing = true
         errorMessage = nil
+        isPublishing = true
         defer { isPublishing = false }
         do {
-            let payload = images.map { (data: $0.jpegData, contentType: "image/jpeg") }
-            _ = try await service.publishPhotoPost(
-                images: payload,
-                caption: caption.trimmingCharacters(in: .whitespacesAndNewlines)
-            )
+            switch mode {
+            case .post:
+                guard !photoLoadeds.isEmpty else { return }
+                _ = try await service.publishPhotoPost(
+                    images: photoLoadeds.map { ($0.jpegData, "image/jpeg") },
+                    caption: caption.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
+            case .story:
+                guard let image = photoLoadeds.first else { return }
+                _ = try await service.publishStory(
+                    image: (image.jpegData, "image/jpeg"),
+                    caption: caption.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
+                    music: music.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+                )
+            case .reel:
+                guard let video = loadedVideo else { return }
+                _ = try await service.publishReel(
+                    video: (video.data, video.contentType),
+                    caption: caption.trimmingCharacters(in: .whitespacesAndNewlines),
+                    audioTitle: audioTitle.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
+                    location: nil
+                )
+            }
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
+    private func resetSelection() {
+        photoLoadeds = []
+        loadedVideo = nil
+        pickerItems = []
+        errorMessage = nil
+    }
+
+    private func contentType(for item: PhotosPickerItem) -> String? {
+        let identifier = item.supportedContentTypes.first?.identifier
+        // PhotosUI doesn't always give us a content type — fall back
+        // to mp4 since QuickTime gets re-encoded by AVKit's exporters
+        // on most modern iPhones.
+        switch identifier {
+        case "public.mpeg-4": return "video/mp4"
+        case "com.apple.quicktime-movie": return "video/quicktime"
+        default: return nil
+        }
+    }
+
     // MARK: Encoding
 
-    /// Re-encode at JPEG quality 0.85 first; if the encoded blob is
-    /// over the hub's 5 MB cap, step down to 0.7, then 0.5. Below that
-    /// the image isn't worth posting — bail with nil and let the
-    /// caller skip it.
     private static func encodeJPEG(_ image: UIImage) -> Data? {
         for quality in [0.85, 0.7, 0.5] as [CGFloat] {
             if let data = image.jpegData(compressionQuality: quality),
-               data.count <= hubUploadCap {
+               data.count <= hubImageCap {
                 return data
             }
         }
         return nil
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? { isEmpty ? nil : self }
+}
+
+private extension Double {
+    func rounded(toPlaces places: Int) -> Double {
+        let divisor = pow(10.0, Double(places))
+        return (self * divisor).rounded() / divisor
     }
 }
 
