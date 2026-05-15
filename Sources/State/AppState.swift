@@ -56,6 +56,13 @@ final class AppState: ObservableObject {
         didSet { recomputePhase() }
     }
 
+    /// x25519 keypair used for nacl.box DM encryption. Lazy-loaded
+    /// the first time something asks for it (the StoryViewer reply
+    /// composer is the only surface that needs it today); first call
+    /// also publishes a DM_KEY_REGISTER envelope so peers can encrypt
+    /// to us.
+    @Published private(set) var dmKey: DMKey?
+
     @Published var myUsername: String?
     @Published var walletAddress: String?
 
@@ -67,11 +74,12 @@ final class AppState: ObservableObject {
     let interactions: InteractionCache
 
     init() {
-        // One-time correctness gate: trap fast on startup if an
-        // OS-level integer / endianness assumption ever breaks Blake3.
-        // Envelope signing is unrecoverable from a silent hash bug —
-        // every signature posted from this build would be invalid.
+        // One-time correctness gates. Trap fast on startup if an
+        // OS-level integer / endianness assumption ever breaks Blake3
+        // or knocks the NaCl-box port off byte-compatibility with
+        // tweetnacl — both are unrecoverable from a silent bug.
         Blake3.selfTest()
+        NaClBox.selfTest()
 
         let storedURL = UserDefaults.standard.string(forKey: Keys.hubURL)
             .flatMap(URL.init(string:)) ?? Config.defaultHubURL
@@ -130,11 +138,33 @@ final class AppState: ObservableObject {
     /// re-enter it on a re-onboard. Routes back to onboarding.
     func signOut() {
         try? KeychainStore.delete(.appKeySeed)
+        DMKey.clearKeychain()
         appKey = nil
+        dmKey = nil
         myTID = nil
         myUsername = nil
         walletAddress = nil
         interactions.clear()
+    }
+
+    /// Lazy-load (or create + persist) the DM keypair. Surfaces that
+    /// need to encrypt or decrypt DMs call this; the first call also
+    /// publishes a DM_KEY_REGISTER envelope so peers can encrypt to
+    /// us. Subsequent calls hit the cached DMKey and skip the
+    /// registration round-trip.
+    @discardableResult
+    func ensureDMKey() async throws -> DMKey {
+        if let dm = dmKey { return dm }
+        let key = try DMKey.loadOrCreate()
+        await MainActor.run { self.dmKey = key }
+        if let appKey, let myTID {
+            _ = try? await api.registerDMKey(
+                publicKey: key.publicKey,
+                as: appKey,
+                tid: myTID
+            )
+        }
+        return key
     }
 
     func refreshIdentityMetadata() async {
