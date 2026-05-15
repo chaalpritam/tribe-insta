@@ -132,10 +132,11 @@ additions, web parity.
 
 **Stories (24h ephemeral posts):**
 
-- new envelope type `STORY_ADD = 30` (pick the next free message kind)
+- new envelope type `STORY_ADD = 33` (next free after the DM group
+  ops 30-32, which PLAN.md's first draft missed)
   - body: `{ media_hash: string, caption?: string, music?: string }`
   - hub auto-stamps `expires_at = created_at + 24h`
-- new envelope type `STORY_VIEW = 31`
+- new envelope type `STORY_VIEW = 34`
   - body: `{ story_hash: string }`
   - hub upserts into `story_views(story_hash, viewer_tid, viewed_at)`
 - new `stories` table: `(hash, author_tid, media_hash, caption, music,
@@ -150,7 +151,7 @@ additions, web parity.
 
 **Reels (video posts):**
 
-- option A: new envelope type `REEL_ADD = 32`, separate from `TWEET_ADD`
+- option A: new envelope type `REEL_ADD = 35`, separate from `TWEET_ADD`
 - option B: reuse `TWEET_ADD` but add `body.post_kind: "reel"` discriminator
 - recommendation: **option B** — minimizes envelope sprawl, indexer just
   partitions queries by `post_kind`
@@ -169,7 +170,7 @@ additions, web parity.
 
 ### tribe-sdk changes
 
-- add `MessageType.STORY_ADD = 30`, `STORY_VIEW = 31`, optionally `REEL_ADD`
+- add `MessageType.STORY_ADD = 33`, `STORY_VIEW = 34`, optionally `REEL_ADD = 35`
 - add helpers in `messages.ts`: `publishStory`, `viewStory`, `publishReel`
 - add API helpers in `api.ts`: `fetchStories`, `fetchActiveStoriesByUser`,
   `fetchReels`, `fetchStoryViewers`
