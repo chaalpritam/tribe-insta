@@ -203,6 +203,95 @@ final class TribeService: ObservableObject {
         return hash
     }
 
+    // MARK: - Inbox
+
+    /// 1:1 conversations the signed-in user is part of, newest first.
+    func conversations() async throws -> [DMConversation] {
+        let (_, tid, _) = try requireSignedIn()
+        let raw = try await api.fetchConversations(tid)
+        return raw.sorted { lhs, rhs in
+            (lhs.lastMessageAt ?? .distantPast) > (rhs.lastMessageAt ?? .distantPast)
+        }
+    }
+
+    /// Ciphertext rows for a conversation. Decryption happens in
+    /// `decrypt(_:)` so a single corrupt envelope can't sink the
+    /// whole thread.
+    func messages(forConversationId conversationId: String) async throws -> [DMMessage] {
+        let (_, tid, _) = try requireSignedIn()
+        return try await api.fetchDMMessages(conversationId: conversationId, tid: tid)
+    }
+
+    /// Open a single DMMessage with our DMKey + the embedded sender
+    /// x25519 pubkey. Returns the plaintext + an optional story_hash
+    /// when the JSON payload includes one (story replies from this
+    /// app — and from tribe-app's StoryViewer composer — carry it).
+    func decrypt(_ message: DMMessage) async throws -> DecryptedDM {
+        let dmKey = try await state.ensureDMKey()
+        guard let cipherBytes = Data(base64Encoded: message.ciphertext),
+              let nonceBytes = Data(base64Encoded: message.nonce),
+              let senderPubBase64 = message.senderX25519,
+              let senderPub = Data(base64Encoded: senderPubBase64)
+        else {
+            throw ServiceError.invalidDMPayload
+        }
+        let plaintextBytes = try NaClBox.boxOpen(
+            cipherBytes,
+            nonce: nonceBytes,
+            senderPublicKey: senderPub,
+            recipientPrivateKey: dmKey.privateKey
+        )
+
+        // Try JSON first (story replies + the iOS/web composers
+        // both pack a {text, story_hash} object). Fall back to UTF-8
+        // text so legacy bare-string DMs still render.
+        if let object = try? JSONSerialization.jsonObject(with: plaintextBytes) as? [String: Any] {
+            let text = (object["text"] as? String) ?? ""
+            let storyHash = object["story_hash"] as? String
+            return DecryptedDM(text: text, storyHash: storyHash)
+        }
+        let text = String(data: plaintextBytes, encoding: .utf8) ?? ""
+        return DecryptedDM(text: text, storyHash: nil)
+    }
+
+    /// Send a plaintext DM to a specific peer TID. Used by the
+    /// ConversationView composer — wraps the same NaClBox pipeline
+    /// replyToStory uses but doesn't bundle a story_hash.
+    @discardableResult
+    func sendDM(to recipientTID: String, text: String) async throws -> Data {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw ServiceError.emptyText }
+        let (appKey, myTID, _) = try requireSignedIn()
+
+        let dmKey = try await state.ensureDMKey()
+        guard let recipientPub = try await api.fetchDMPublicKey(recipientTID) else {
+            throw ServiceError.recipientHasNoDMKey
+        }
+
+        let plaintext: [String: Any] = ["text": trimmed]
+        let plaintextBytes = try JSONSerialization.data(
+            withJSONObject: plaintext,
+            options: [.sortedKeys, .withoutEscapingSlashes]
+        )
+
+        let nonce = NaClBox.randomNonce()
+        let ciphertext = try NaClBox.box(
+            plaintextBytes,
+            nonce: nonce,
+            recipientPublicKey: recipientPub,
+            senderPrivateKey: dmKey.privateKey
+        )
+
+        return try await api.sendDM(
+            recipientTID: recipientTID,
+            ciphertext: ciphertext,
+            nonce: nonce,
+            senderX25519: dmKey.publicKey,
+            as: appKey,
+            tid: myTID
+        )
+    }
+
     // MARK: - Notifications
 
     func notifications(tid: String, limit: Int = 50) async throws -> [AppNotification] {
@@ -499,6 +588,7 @@ enum ServiceError: LocalizedError {
     case emptyText
     case noImages
     case recipientHasNoDMKey
+    case invalidDMPayload
 
     var errorDescription: String? {
         switch self {
@@ -512,6 +602,16 @@ enum ServiceError: LocalizedError {
             return "Pick at least one photo."
         case .recipientHasNoDMKey:
             return "This user hasn't set up DMs on the hub yet."
+        case .invalidDMPayload:
+            return "Could not decode message."
         }
     }
+}
+
+/// Plaintext result from TribeService.decrypt(_:). `storyHash` is
+/// non-nil when the DM's plaintext was a story-reply payload — the
+/// view layer can use it to render "Replied to your story" inline.
+struct DecryptedDM: Hashable {
+    let text: String
+    let storyHash: String?
 }
