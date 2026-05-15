@@ -122,4 +122,8 @@ enum MessageType: Int {
     case dmGroupAddMember = 30
     case dmGroupRemoveMember = 31
     case dmGroupDelete = 32
+    /// Phase 3 — ephemeral story posts. 24h TTL hub-stamped on insert.
+    case storyAdd = 33
+    /// Phase 3 — mark a story as viewed by the current TID.
+    case storyView = 34
 }
