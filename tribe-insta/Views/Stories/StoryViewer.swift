@@ -27,6 +27,11 @@ struct StoryViewer: View {
     @State private var progress: Double = 0
     @State private var paused: Bool = false
     @State private var showViewers: Bool = false
+    @State private var replyDraft: String = ""
+    @State private var isReplying: Bool = false
+    @State private var replyError: String?
+    @State private var replySent: Bool = false
+    @FocusState private var replyFocused: Bool
 
     @EnvironmentObject private var state: AppState
 
@@ -107,11 +112,13 @@ struct StoryViewer: View {
                 }
                 if isOwnStory(story) {
                     seenByFooter(story: story)
+                } else {
+                    replyComposer(story: story)
                 }
             }
             .padding(.horizontal, 12)
             .padding(.top, 8)
-            .padding(.bottom, 32)
+            .padding(.bottom, replyFocused ? 8 : 32)
         }
         .sheet(isPresented: $showViewers) {
             if let s = currentStory {
@@ -201,6 +208,73 @@ struct StoryViewer: View {
               let authorTID = story.author.tid
         else { return false }
         return myTID == authorTID
+    }
+
+    /// Bottom-of-viewer DM reply composer. Visible only for non-own
+    /// stories when the user is signed in. Pauses the auto-advance
+    /// ticker while focused so the story doesn't roll past while typing.
+    @ViewBuilder
+    private func replyComposer(story: Story) -> some View {
+        if state.myTID != nil {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 8) {
+                    TextField(
+                        replySent ? "Sent. Send another?" : "Reply to story",
+                        text: $replyDraft,
+                        axis: .vertical
+                    )
+                    .lineLimit(1...3)
+                    .textFieldStyle(.plain)
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .foregroundStyle(.white)
+                    .tint(.white)
+                    .focused($replyFocused)
+                    .onChange(of: replyFocused) { _, focused in
+                        paused = focused
+                        if focused { replySent = false }
+                    }
+
+                    if isReplying {
+                        ProgressView()
+                            .tint(.white)
+                            .padding(.trailing, 8)
+                    } else if !replyDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Button {
+                            Task { await sendReply(story: story) }
+                        } label: {
+                            Image(systemName: "paperplane.fill")
+                                .font(.callout).foregroundStyle(.white)
+                                .padding(8)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .background(.white.opacity(0.15), in: Capsule())
+                .overlay(Capsule().stroke(.white.opacity(0.4), lineWidth: 1))
+                if let replyError {
+                    Text(replyError)
+                        .font(.caption2)
+                        .foregroundStyle(.red)
+                        .padding(.leading, 14)
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func sendReply(story: Story) async {
+        let text = replyDraft
+        isReplying = true
+        replyError = nil
+        defer { isReplying = false }
+        do {
+            try await service.replyToStory(story, text: text)
+            replyDraft = ""
+            replySent = true
+            replyFocused = false
+        } catch {
+            replyError = error.localizedDescription
+        }
     }
 
     private var emptyState: some View {

@@ -97,6 +97,51 @@ final class TribeService: ObservableObject {
         _ = try await api.viewStory(storyHash: hash, as: appKey, tid: tid)
     }
 
+    /// Reply to a story via DM. Looks up the recipient's x25519
+    /// pubkey, encrypts via nacl.box, and submits DM_SEND.
+    /// Plaintext is JSON `{"text": ..., "story_hash": ...}` so a
+    /// future inbox can render "Replied to your story" anchored to
+    /// the right target.
+    func replyToStory(_ story: Story, text: String) async throws {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw ServiceError.emptyText }
+        guard let recipientTID = story.author.tid,
+              let storyHash = story.hash
+        else { throw ServiceError.notProtocolBacked }
+        let (appKey, myTID, _) = try requireSignedIn()
+
+        let dmKey = try await state.ensureDMKey()
+        guard let recipientPub = try await api.fetchDMPublicKey(recipientTID) else {
+            throw ServiceError.recipientHasNoDMKey
+        }
+
+        let plaintext: [String: Any] = [
+            "text": trimmed,
+            "story_hash": storyHash,
+        ]
+        let plaintextBytes = try JSONSerialization.data(
+            withJSONObject: plaintext,
+            options: [.sortedKeys, .withoutEscapingSlashes]
+        )
+
+        let nonce = NaClBox.randomNonce()
+        let ciphertext = try NaClBox.box(
+            plaintextBytes,
+            nonce: nonce,
+            recipientPublicKey: recipientPub,
+            senderPrivateKey: dmKey.privateKey
+        )
+
+        _ = try await api.sendDM(
+            recipientTID: recipientTID,
+            ciphertext: ciphertext,
+            nonce: nonce,
+            senderX25519: dmKey.publicKey,
+            as: appKey,
+            tid: myTID
+        )
+    }
+
     /// Upload the image, then publish STORY_ADD. caption and music
     /// optional; the hub stamps a 24h expiry server-side so the client
     /// can't override TTL.
@@ -453,6 +498,7 @@ enum ServiceError: LocalizedError {
     case notProtocolBacked
     case emptyText
     case noImages
+    case recipientHasNoDMKey
 
     var errorDescription: String? {
         switch self {
@@ -464,6 +510,8 @@ enum ServiceError: LocalizedError {
             return "Type something first."
         case .noImages:
             return "Pick at least one photo."
+        case .recipientHasNoDMKey:
+            return "This user hasn't set up DMs on the hub yet."
         }
     }
 }
