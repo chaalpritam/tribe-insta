@@ -122,6 +122,54 @@ public extension HubClient {
         return res.users
     }
 
+    // MARK: - Stories
+
+    /// `/v1/stories` — every author's currently-active stories,
+    /// newest-first within each author. Phase 4 will add a follow-graph
+    /// filter; today the response includes everyone.
+    func fetchStories(limit: Int = 100) async throws -> [HubStory] {
+        let res: HubStoryListResponse = try await get(
+            "v1/stories",
+            query: ["limit": String(limit)]
+        )
+        return res.stories
+    }
+
+    /// `/v1/stories/:tid` — one author's active stories, oldest-first
+    /// (story-pager order).
+    func fetchStories(forTID tid: String) async throws -> [HubStory] {
+        let res: HubStoryListResponse = try await get("v1/stories/\(tid)")
+        return res.stories
+    }
+
+    /// `/v1/stories/:hash/viewers` — author-only "seen by" list.
+    /// Pass `viewerTID` so the hub 403s a non-author request rather
+    /// than leaking the list.
+    func fetchStoryViewers(
+        storyHash: String,
+        viewerTID: String
+    ) async throws -> [HubStoryViewer] {
+        let escaped = storyHash.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? storyHash
+        let res: HubStoryViewerListResponse = try await get(
+            "v1/stories/\(escaped)/viewers",
+            query: ["viewer_tid": viewerTID]
+        )
+        return res.viewers
+    }
+
+    // MARK: - Reels
+
+    /// `/v1/reels` — paginated feed filtered to `post_kind='reel'`.
+    /// Returns full Tweet rows since reels live in the same `messages`
+    /// table as plain tweets and the projection is identical.
+    func fetchReels(cursor: String? = nil, limit: Int = 20) async throws -> [Tweet] {
+        struct R: Decodable { let reels: [Tweet]; let cursor: String? }
+        var query: [String: String] = ["limit": String(limit)]
+        if let cursor { query["cursor"] = cursor }
+        let r: R = try await get("v1/reels", query: query)
+        return r.reels
+    }
+
     // MARK: - Media URL resolver
 
     /// `media:<hash>` and absolute `/v1/media/<hash>` references both

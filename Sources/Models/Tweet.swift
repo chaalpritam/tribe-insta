@@ -19,6 +19,11 @@ public struct Tweet: Decodable, Identifiable, Hashable {
     public let retweetedByTid: String?
     public let retweetedByUsername: String?
     public let retweetedAt: Date?
+    /// Phase 3: discriminator for IG-shaped feeds. 'photo' / 'reel' /
+    /// nil for plain text tweets. /v1/reels filters on this column.
+    public let postKind: String?
+    public let location: String?
+    public let audioTitle: String?
 
     public var id: String {
         // Profile feeds may surface the same hash twice (the user's
@@ -30,13 +35,15 @@ public struct Tweet: Decodable, Identifiable, Hashable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case hash, tid, text, embeds, username, timestamp
+        case hash, tid, text, embeds, username, timestamp, location
         case parentHash = "parent_hash"
         case channelId = "channel_id"
         case replyCount = "reply_count"
         case retweetedByTid = "retweeted_by_tid"
         case retweetedByUsername = "retweeted_by_username"
         case retweetedAt = "retweeted_at"
+        case postKind = "post_kind"
+        case audioTitle = "audio_title"
     }
 
     public init(from decoder: Decoder) throws {
@@ -53,6 +60,9 @@ public struct Tweet: Decodable, Identifiable, Hashable {
         self.retweetedByTid = try HubDecode.bigIntIfPresent(c, forKey: .retweetedByTid)
         self.retweetedByUsername = try c.decodeIfPresent(String.self, forKey: .retweetedByUsername)
         self.retweetedAt = try HubDecode.dateIfPresent(c, forKey: .retweetedAt)
+        self.postKind = try c.decodeIfPresent(String.self, forKey: .postKind)
+        self.location = try c.decodeIfPresent(String.self, forKey: .location)
+        self.audioTitle = try c.decodeIfPresent(String.self, forKey: .audioTitle)
     }
 
     /// Memberwise init for synthesizing a Tweet from rows that don't
@@ -70,7 +80,10 @@ public struct Tweet: Decodable, Identifiable, Hashable {
         replyCount: Int?,
         retweetedByTid: String? = nil,
         retweetedByUsername: String? = nil,
-        retweetedAt: Date? = nil
+        retweetedAt: Date? = nil,
+        postKind: String? = nil,
+        location: String? = nil,
+        audioTitle: String? = nil
     ) {
         self.hash = hash
         self.tid = tid
@@ -84,6 +97,9 @@ public struct Tweet: Decodable, Identifiable, Hashable {
         self.retweetedByTid = retweetedByTid
         self.retweetedByUsername = retweetedByUsername
         self.retweetedAt = retweetedAt
+        self.postKind = postKind
+        self.location = location
+        self.audioTitle = audioTitle
     }
 }
 

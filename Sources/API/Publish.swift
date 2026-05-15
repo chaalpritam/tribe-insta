@@ -82,6 +82,11 @@ extension HubClient {
     /// `parentHash` makes the tweet a reply (used for IG comments) and
     /// `channelId` defaults to the reserved "general" channel — every
     /// TWEET_ADD has to belong to one, matching tribe-app's composer.
+    ///
+    /// Phase 3 extensions: `postKind` ('photo' or 'reel'), `location`,
+    /// `audioTitle`. All optional — older clients omit them. The hub
+    /// validates the post_kind whitelist and length-caps location +
+    /// audio_title in submit.ts.
     @discardableResult
     func publishTweet(
         text: String,
@@ -89,7 +94,10 @@ extension HubClient {
         tid: String,
         parentHash: String? = nil,
         channelId: String? = nil,
-        embeds: [String]? = nil
+        embeds: [String]? = nil,
+        postKind: String? = nil,
+        location: String? = nil,
+        audioTitle: String? = nil
     ) async throws -> String {
         var body: [String: Any] = [
             "text": text,
@@ -97,10 +105,82 @@ extension HubClient {
         ]
         if let parentHash { body["parent_hash"] = parentHash }
         if let embeds, !embeds.isEmpty { body["embeds"] = embeds }
+        if let postKind, !postKind.isEmpty { body["post_kind"] = postKind }
+        if let location, !location.isEmpty { body["location"] = location }
+        if let audioTitle, !audioTitle.isEmpty { body["audio_title"] = audioTitle }
         let envelope = try MessageSigner.sign(
             type: MessageType.tweetAdd.rawValue,
             tid: tid,
             body: body,
+            appKey: appKey
+        )
+        return try await submit(envelope: envelope)
+    }
+
+    /// Publish a reel. Sugar over `publishTweet` that hard-codes
+    /// `post_kind='reel'` and requires exactly one video embed from a
+    /// prior `uploadMedia` call. caption + audioTitle + location all
+    /// optional.
+    @discardableResult
+    func publishReel(
+        videoEmbed: String,
+        as appKey: AppKey,
+        tid: String,
+        caption: String = "",
+        audioTitle: String? = nil,
+        location: String? = nil,
+        channelId: String? = nil
+    ) async throws -> String {
+        try await publishTweet(
+            text: caption,
+            as: appKey,
+            tid: tid,
+            channelId: channelId,
+            embeds: [videoEmbed],
+            postKind: "reel",
+            location: location,
+            audioTitle: audioTitle
+        )
+    }
+
+    // MARK: - Stories
+
+    /// Publish a story (STORY_ADD). `mediaHash` is the 64-char hex
+    /// hash returned by /v1/upload — same format used for tweet embeds,
+    /// passed bare (not wrapped in "media:") because the hub stores it
+    /// as a column on the stories table rather than an embeds array.
+    @discardableResult
+    func publishStory(
+        mediaHash: String,
+        as appKey: AppKey,
+        tid: String,
+        caption: String? = nil,
+        music: String? = nil
+    ) async throws -> String {
+        var body: [String: Any] = ["media_hash": mediaHash]
+        if let caption, !caption.isEmpty { body["caption"] = caption }
+        if let music, !music.isEmpty { body["music"] = music }
+        let envelope = try MessageSigner.sign(
+            type: MessageType.storyAdd.rawValue,
+            tid: tid,
+            body: body,
+            appKey: appKey
+        )
+        return try await submit(envelope: envelope)
+    }
+
+    /// Mark a story as viewed (STORY_VIEW). Idempotent — re-viewing
+    /// keeps the original (story_hash, viewer_tid) row on the hub.
+    @discardableResult
+    func viewStory(
+        storyHash: String,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> String {
+        let envelope = try MessageSigner.sign(
+            type: MessageType.storyView.rawValue,
+            tid: tid,
+            body: ["story_hash": storyHash],
             appKey: appKey
         )
         return try await submit(envelope: envelope)
