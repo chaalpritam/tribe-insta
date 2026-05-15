@@ -1,10 +1,17 @@
 import SwiftUI
 
+/// Self profile screen. Fetches /v1/user/<myTID> + /v1/tweets/<myTID>
+/// through TribeService and renders the IG-shaped header + photo grid.
 struct ProfileView: View {
-    let user: User
-    let posts: [Post]
+    @EnvironmentObject private var state: AppState
+    @EnvironmentObject private var service: TribeService
 
+    @State private var user: User?
+    @State private var posts: [Post] = []
+    @State private var isLoading: Bool = false
+    @State private var errorMessage: String?
     @State private var selectedTab: ProfileTab = .grid
+    @State private var showSettings: Bool = false
 
     enum ProfileTab: Hashable {
         case grid, reels, tagged
@@ -14,28 +21,51 @@ struct ProfileView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                    ProfileHeader(user: user)
+                    if let user {
+                        ProfileHeader(user: user)
+                    } else if isLoading {
+                        ProgressView().padding(40)
+                    } else if let errorMessage {
+                        VStack(spacing: 8) {
+                            Text("Couldn't load profile")
+                                .font(.headline)
+                            Text(errorMessage)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 24)
+                            Button("Retry") { Task { await load() } }
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .padding(40)
+                    }
+
                     HighlightsRow()
+
                     Section(header: tabSelector) {
                         ProfilePostsGrid(posts: posts)
                     }
                 }
             }
-            .navigationTitle(user.username)
+            .refreshable { await load() }
+            .navigationTitle(state.myUsername ?? "Profile")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     HStack(spacing: 4) {
-                        Text(user.username).fontWeight(.semibold)
+                        Text(state.myUsername ?? "Profile").fontWeight(.semibold)
                         Image(systemName: "chevron.down").font(.caption2)
                     }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button { } label: { Image(systemName: "plus.app") }
-                    Button { } label: { Image(systemName: "line.3.horizontal") }
+                    Button { showSettings = true } label: { Image(systemName: "gearshape") }
                 }
             }
         }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
+        }
+        .task { await load() }
     }
 
     private var tabSelector: some View {
@@ -62,6 +92,21 @@ struct ProfileView: View {
         }
         .buttonStyle(.plain)
     }
+
+    @MainActor
+    private func load() async {
+        guard let tid = state.myTID else { return }
+        isLoading = true
+        errorMessage = nil
+        do {
+            let (u, p) = try await service.profile(tid: tid)
+            user = u
+            posts = p
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
 }
 
 private struct ProfileHeader: View {
@@ -82,9 +127,11 @@ private struct ProfileHeader: View {
                             .font(.caption).foregroundStyle(.blue)
                     }
                 }
-                Text(user.bio)
-                    .font(.subheadline)
-                    .foregroundStyle(.primary)
+                if !user.bio.isEmpty {
+                    Text(user.bio)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                }
             }
 
             HStack(spacing: 8) {
@@ -133,6 +180,11 @@ private struct ProfileHeader: View {
     }
 }
 
+/// Phase 1 keeps the highlights as placeholder rings — there's no
+/// protocol concept for highlights yet, and they're optional UI
+/// chrome rather than functional. Hidden when there's nothing to
+/// link them to could be cleaner; left visible so the layout stays
+/// consistent with the mock for now.
 private struct HighlightsRow: View {
     private let titles = ["New", "Travel", "Code", "Food", "2026"]
     private let seeds = ["h1", "h2", "h3", "h4", "h5"]
@@ -166,16 +218,31 @@ private struct ProfilePostsGrid: View {
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 3)
 
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 2) {
-            ForEach(posts) { post in
-                RemoteImage(url: post.imageURLs.first)
-                    .aspectRatio(1, contentMode: .fill)
-                    .clipped()
+        if posts.isEmpty {
+            VStack(spacing: 8) {
+                Image(systemName: "camera").font(.title2).foregroundStyle(.secondary)
+                Text("No posts yet")
+                    .font(.headline)
+                Text("Share a photo from the + tab.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            .padding(.top, 40)
+            .padding(.bottom, 40)
+            .frame(maxWidth: .infinity)
+        } else {
+            LazyVGrid(columns: columns, spacing: 2) {
+                ForEach(posts) { post in
+                    RemoteImage(url: post.imageURLs.first)
+                        .aspectRatio(1, contentMode: .fill)
+                        .clipped()
+                }
             }
         }
     }
 }
 
 #Preview {
-    ProfileView(user: MockData.currentUser, posts: MockData.myPosts)
+    ProfileView()
+        .environmentObject(AppState())
+        .environmentObject(TribeService(state: AppState()))
 }

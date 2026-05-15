@@ -1,10 +1,31 @@
 import SwiftUI
 
+/// Notifications grouped by Today / This week / Earlier. Fetches
+/// /v1/notifications/<myTID> on appear and pull-down refresh; stamps
+/// "now" as the read mark so the bell badge resets (Phase 2 surfaces
+/// the badge in FeedView toolbar).
 struct ActivityView: View {
-    let notifications: [AppNotification]
+    @EnvironmentObject private var state: AppState
+    @EnvironmentObject private var service: TribeService
+
+    @State private var notifications: [AppNotification] = []
+    @State private var isLoading: Bool = false
+    @State private var errorMessage: String?
 
     var body: some View {
         NavigationStack {
+            content
+                .navigationTitle("Notifications")
+                .navigationBarTitleDisplayMode(.inline)
+        }
+        .task { await load() }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if notifications.isEmpty {
+            emptyState
+        } else {
             List {
                 let groups = group(notifications)
                 ForEach(groups, id: \.title) { group in
@@ -17,9 +38,37 @@ struct ActivityView: View {
                 }
             }
             .listStyle(.plain)
-            .navigationTitle("Notifications")
-            .navigationBarTitleDisplayMode(.inline)
+            .refreshable { await load() }
         }
+    }
+
+    @ViewBuilder
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            if isLoading {
+                ProgressView().padding(.top, 80)
+            } else if let errorMessage {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.title2).foregroundStyle(.secondary)
+                Text("Couldn't load notifications").font(.headline)
+                Text(errorMessage)
+                    .font(.caption).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+                Button("Retry") { Task { await load() } }
+                    .font(.subheadline.weight(.semibold))
+            } else {
+                Image(systemName: "bell")
+                    .font(.title2).foregroundStyle(.secondary)
+                    .padding(.top, 80)
+                Text("Nothing new").font(.headline)
+                Text("Reactions, replies, mentions, and follows on your posts show up here.")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+            }
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private struct NotificationGroup {
@@ -43,6 +92,20 @@ struct ActivityView: View {
         if !thisWeek.isEmpty { result.append(.init(title: "This week", items: thisWeek)) }
         if !earlier.isEmpty { result.append(.init(title: "Earlier", items: earlier)) }
         return result
+    }
+
+    @MainActor
+    private func load() async {
+        guard let tid = state.myTID else { return }
+        isLoading = true
+        errorMessage = nil
+        do {
+            notifications = try await service.notifications(tid: tid)
+            state.markNotificationsRead(tid: tid)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
     }
 }
 
@@ -86,9 +149,13 @@ struct NotificationRow: View {
     private var trailing: some View {
         switch notification.kind {
         case .like(let thumb), .comment(let thumb, _), .mention(let thumb, _):
-            RemoteImage(url: thumb)
-                .frame(width: 44, height: 44)
-                .clipShape(RoundedRectangle(cornerRadius: 4))
+            if thumb != nil {
+                RemoteImage(url: thumb)
+                    .frame(width: 44, height: 44)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+            } else {
+                EmptyView()
+            }
         case .follow:
             Button { } label: {
                 Text("Follow")
@@ -103,5 +170,7 @@ struct NotificationRow: View {
 }
 
 #Preview {
-    ActivityView(notifications: MockData.notifications)
+    ActivityView()
+        .environmentObject(AppState())
+        .environmentObject(TribeService(state: AppState()))
 }
