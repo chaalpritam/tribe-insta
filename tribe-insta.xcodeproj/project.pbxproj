@@ -33,6 +33,7 @@
 		9471EACBA29A99EA1065F7C0 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97C895D159D7EA18448292C2 /* OnboardingView.swift */; };
 		96FC8170AA83A1ECE22DA6EF /* Endpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366E13BF5ABBADAB8DD0D734 /* Endpoints.swift */; };
 		9A796E6986461AD098A8AA01 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A771F656A1073AF6D68CCC4 /* ContentView.swift */; };
+		A3C229F11C44D9D1728E7E97 /* DM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85CE8B6E0FA48A1C0F73D75E /* DM.swift */; };
 		AA9064A5BD445A1BA4B5A077 /* Channel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CB66D4019F4131F69FD8D5 /* Channel.swift */; };
 		AB2819B95C03E02595CB1BAF /* RemoteImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABB26542888FBA6F11C8DA89 /* RemoteImage.swift */; };
 		B24289EFDCA921F1B5876743 /* Tweet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CC39B2DE02155DAFAF439AC /* Tweet.swift */; };
@@ -78,6 +79,7 @@
 		5D23AB15529AF90AE90CA10B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		705F9EA1D7556BB8DFFFF72A /* tribe_instaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = tribe_instaApp.swift; sourceTree = "<group>"; };
 		711D4AE40462E6FD20E14705 /* Blake3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blake3.swift; sourceTree = "<group>"; };
+		85CE8B6E0FA48A1C0F73D75E /* DM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DM.swift; sourceTree = "<group>"; };
 		91614C9851F38B640268C473 /* AppKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppKey.swift; sourceTree = "<group>"; };
 		96DB0BC39DDB308F616917A2 /* StoryViewersSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryViewersSheet.swift; sourceTree = "<group>"; };
 		97C895D159D7EA18448292C2 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -184,6 +186,7 @@
 			children = (
 				A1CB66D4019F4131F69FD8D5 /* Channel.swift */,
 				B85C3D80731BBCB76899A69D /* Decoding.swift */,
+				85CE8B6E0FA48A1C0F73D75E /* DM.swift */,
 				9A587FA9932FEA98A7C746DE /* HubStory.swift */,
 				33C8C449589D7E5DAD3E7395 /* HubUser.swift */,
 				1DD0C90AC138518A4CB9D48A /* Notification.swift */,
@@ -419,6 +422,7 @@
 				0813468C3E10C389E07CAFF0 /* Config.swift in Sources */,
 				9A796E6986461AD098A8AA01 /* ContentView.swift in Sources */,
 				65938C69F08655DF99C7F4A0 /* CreatePostView.swift in Sources */,
+				A3C229F11C44D9D1728E7E97 /* DM.swift in Sources */,
 				419BA4AFDD692CB15FC8553B /* DMKey.swift in Sources */,
 				1636AB28330C7134950ED056 /* Decoding.swift in Sources */,
 				039411B5C56C0D201C315282 /* ERClient.swift in Sources */,
