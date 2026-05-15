@@ -122,6 +122,30 @@ public extension HubClient {
         return res.users
     }
 
+    // MARK: - DM inbox reads
+
+    /// `/v1/dm/conversations/:tid` — list of 1:1 conversations this
+    /// TID is part of. Each row carries the peer's username + a
+    /// last_message_at + unread_count from the hub-side join.
+    func fetchConversations(_ tid: String) async throws -> [DMConversation] {
+        struct R: Decodable { let conversations: [DMConversation] }
+        let r: R = try await get("v1/dm/conversations/\(tid)")
+        return r.conversations
+    }
+
+    /// `/v1/dm/messages/:conversation_id?tid=…` — ciphertext rows for
+    /// one conversation. The `tid` param is just so the hub can apply
+    /// per-recipient row filtering; it doesn't authenticate (reads
+    /// are public, same pattern as the rest of /v1).
+    func fetchDMMessages(conversationId: String, tid: String) async throws -> [DMMessage] {
+        struct R: Decodable { let messages: [DMMessage] }
+        let r: R = try await get(
+            "v1/dm/messages/\(conversationId)",
+            query: ["tid": tid]
+        )
+        return r.messages
+    }
+
     // MARK: - DM key lookup
 
     /// Look up another TID's registered x25519 pubkey so we can
