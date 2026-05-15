@@ -10,7 +10,8 @@ struct FeedView: View {
 
     @State private var posts: [Post] = []
     @State private var stories: [Story] = []
-    @State private var viewerStories: [Story] = []
+    @State private var viewerAuthors: [[Story]] = []
+    @State private var viewerInitialIndex: Int = 0
     @State private var showStoryViewer: Bool = false
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
@@ -68,7 +69,10 @@ struct FeedView: View {
             Task { await load() }
         }
         .fullScreenCover(isPresented: $showStoryViewer) {
-            StoryViewer(stories: viewerStories)
+            StoryViewer(
+                authors: viewerAuthors,
+                initialAuthorIndex: viewerInitialIndex
+            )
         }
     }
 
@@ -129,22 +133,42 @@ struct FeedView: View {
         isLoading = false
     }
 
-    /// Open the StoryViewer for one author. nil/missing TID falls back
-    /// to dismissing — there's nothing to render.
+    /// Open the StoryViewer at the given author, with every author's
+    /// stories pre-grouped so horizontal swipes can move between them.
     @MainActor
     private func openStories(forAuthor authorTID: String?) async {
         guard let authorTID else { return }
-        let authorStories: [Story]
-        if authorTID == state.myTID {
-            // For my own story tap, /v1/stories doesn't return my row
-            // if it didn't make the global ranking, so always go straight
-            // at /v1/stories/<my-tid> instead of filtering the cached list.
-            authorStories = (try? await service.stories(forUserTID: authorTID)) ?? []
-        } else {
-            authorStories = stories.filter { $0.author.tid == authorTID }
+
+        // Group the cached stories list by author, preserving the
+        // hub's "newest active per author" ordering. The cache is
+        // chronological-newest-first per author; reverse within each
+        // bucket so the viewer walks them oldest-first.
+        var bucketsByAuthor: [String: [Story]] = [:]
+        var orderedAuthorTids: [String] = []
+        for story in stories {
+            guard let tid = story.author.tid else { continue }
+            if bucketsByAuthor[tid] == nil {
+                bucketsByAuthor[tid] = []
+                orderedAuthorTids.append(tid)
+            }
+            bucketsByAuthor[tid]?.append(story)
         }
-        guard !authorStories.isEmpty else { return }
-        viewerStories = authorStories
+        for tid in bucketsByAuthor.keys {
+            bucketsByAuthor[tid]?.reverse()
+        }
+
+        // If the user tapped their own story but /v1/stories didn't
+        // include it (e.g. limit truncation), fetch directly.
+        if authorTID == state.myTID && bucketsByAuthor[authorTID] == nil {
+            let mine = (try? await service.stories(forUserTID: authorTID)) ?? []
+            if mine.isEmpty { return }
+            bucketsByAuthor[authorTID] = mine
+            orderedAuthorTids.insert(authorTID, at: 0)
+        }
+
+        guard let initial = orderedAuthorTids.firstIndex(of: authorTID) else { return }
+        viewerAuthors = orderedAuthorTids.compactMap { bucketsByAuthor[$0] }
+        viewerInitialIndex = initial
         showStoryViewer = true
     }
 
