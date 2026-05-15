@@ -2,6 +2,10 @@ import Foundation
 
 struct User: Identifiable, Hashable {
     let id: UUID
+    /// Tribe Identifier (TID) when this user is backed by the protocol.
+    /// nil for mock data. Phase 2 writes need this to address the right
+    /// account in REACTION_ADD / BOOKMARK_ADD envelopes.
+    var tid: String?
     var username: String
     var displayName: String
     var avatarURL: URL?
@@ -14,6 +18,7 @@ struct User: Identifiable, Hashable {
 
     init(
         id: UUID = UUID(),
+        tid: String? = nil,
         username: String,
         displayName: String,
         avatarURL: URL? = nil,
@@ -25,6 +30,7 @@ struct User: Identifiable, Hashable {
         isFollowing: Bool = false
     ) {
         self.id = id
+        self.tid = tid
         self.username = username
         self.displayName = displayName
         self.avatarURL = avatarURL
@@ -83,6 +89,10 @@ struct Comment: Identifiable, Hashable {
 
 struct Post: Identifiable, Hashable {
     let id: UUID
+    /// Protocol content hash when this post is backed by a real tweet.
+    /// nil for mock data. Phase 2 writes (like / bookmark / reply) need
+    /// this to address the right envelope target.
+    var hash: String?
     var author: User
     var imageURLs: [URL]
     var caption: String
@@ -96,6 +106,7 @@ struct Post: Identifiable, Hashable {
 
     init(
         id: UUID = UUID(),
+        hash: String? = nil,
         author: User,
         imageURLs: [URL],
         caption: String,
@@ -108,6 +119,7 @@ struct Post: Identifiable, Hashable {
         comments: [Comment] = []
     ) {
         self.id = id
+        self.hash = hash
         self.author = author
         self.imageURLs = imageURLs
         self.caption = caption

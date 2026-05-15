@@ -37,6 +37,7 @@
 		E5D2F1FD4E37080776F86134 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E124A34A6BC73A59311C6209 /* RootView.swift */; };
 		EB404370415968B53A5CA2D8 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01ED941587CB7875CE1F31D4 /* AppState.swift */; };
 		F259EE005A55164ADF716071 /* HubClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6CDA2097CDB91D6A056D5E /* HubClient.swift */; };
+		F95850A5D1F31CD25FC85F92 /* TribeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F46117E408E4432DC1701A8 /* TribeService.swift */; };
 		FA5BB35945291B94B308A3AF /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1B77F18FCED6D64D54729A /* Formatters.swift */; };
 		FD989B8260B3545E717C9805 /* Blake3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 711D4AE40462E6FD20E14705 /* Blake3.swift */; };
 /* End PBXBuildFile section */
@@ -45,6 +46,7 @@
 		01BB8D54A58E9D7D32E5030E /* StoriesBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoriesBar.swift; sourceTree = "<group>"; };
 		01ED941587CB7875CE1F31D4 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		0A11EDA9969ED7F1C447D2B5 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		0F46117E408E4432DC1701A8 /* TribeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TribeService.swift; sourceTree = "<group>"; };
 		1A771F656A1073AF6D68CCC4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1DD0C90AC138518A4CB9D48A /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		2BF18C41C8AF4264D9D5D209 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
@@ -78,6 +80,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		0FA118ED3240A4B92C865507 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				0F46117E408E4432DC1701A8 /* TribeService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		22180DDAF9F4B02712144F71 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
@@ -123,6 +133,7 @@
 				8E97C7E21F7B8F2ECFEBC058 /* API */,
 				B9E8C84C265D2F7214524438 /* Crypto */,
 				4F37A9D77AEA608B7732A77D /* Models */,
+				0FA118ED3240A4B92C865507 /* Services */,
 				2238992205FD7F2AC974AA3A /* State */,
 				F873556BF7C278BD30F1A68F /* Config.swift */,
 			);
@@ -361,6 +372,7 @@
 				E5D2F1FD4E37080776F86134 /* RootView.swift in Sources */,
 				6532D713B99F89900DA11804 /* SearchView.swift in Sources */,
 				51FB05FF22FE26D93F6F78E5 /* StoriesBar.swift in Sources */,
+				F95850A5D1F31CD25FC85F92 /* TribeService.swift in Sources */,
 				B24289EFDCA921F1B5876743 /* Tweet.swift in Sources */,
 				DE5E092EA86F5E02B4830063 /* tribe_instaApp.swift in Sources */,
 			);
