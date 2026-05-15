@@ -61,6 +61,138 @@ final class TribeService: ObservableObject {
         return raw.compactMap(mapToNotification)
     }
 
+    // MARK: - Replies (Comments)
+
+    /// Returns reply tweets as IG-shaped Comments. Replies aren't
+    /// required to have image embeds (text-only comments are normal),
+    /// so we don't filter the way `mapToPost` does.
+    func replies(forPostHash hash: String) async throws -> [Comment] {
+        let tweets = try await api.fetchReplies(hash: hash)
+        return tweets.map { reply in
+            Comment(
+                author: User(
+                    tid: reply.tid,
+                    username: reply.username ?? "tid\(reply.tid)",
+                    displayName: reply.username ?? "TID #\(reply.tid)"
+                ),
+                text: reply.text ?? "",
+                createdAt: reply.timestamp,
+                likesCount: 0
+            )
+        }
+    }
+
+    // MARK: - Writes
+
+    /// Toggle the heart on a post. Updates the interaction cache
+    /// optimistically, then sends the REACTION envelope; reverts the
+    /// cache on failure and rethrows. Returns the new liked state.
+    @discardableResult
+    func toggleLike(_ post: Post) async throws -> Bool {
+        let (appKey, tid, hash) = try requireWriteContext(post: post)
+        let wantsLiked = !state.interactions.contains(liked: hash)
+        state.interactions.setLiked(wantsLiked, hash: hash)
+        do {
+            if wantsLiked {
+                try await api.likeTweet(hash: hash, as: appKey, tid: tid)
+            } else {
+                try await api.unlikeTweet(hash: hash, as: appKey, tid: tid)
+            }
+            return wantsLiked
+        } catch {
+            state.interactions.setLiked(!wantsLiked, hash: hash)
+            throw error
+        }
+    }
+
+    /// Toggle the bookmark on a post. Same optimistic-update pattern
+    /// as toggleLike.
+    @discardableResult
+    func toggleBookmark(_ post: Post) async throws -> Bool {
+        let (appKey, tid, hash) = try requireWriteContext(post: post)
+        let wantsSaved = !state.interactions.contains(bookmarked: hash)
+        state.interactions.setBookmarked(wantsSaved, hash: hash)
+        do {
+            try await api.bookmark(hash: hash, as: appKey, tid: tid, add: wantsSaved)
+            return wantsSaved
+        } catch {
+            state.interactions.setBookmarked(!wantsSaved, hash: hash)
+            throw error
+        }
+    }
+
+    /// Post a reply (an IG "comment") to a post. Returns the new hash.
+    @discardableResult
+    func reply(to post: Post, text: String) async throws -> String {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            throw ServiceError.emptyText
+        }
+        let (appKey, tid, hash) = try requireWriteContext(post: post)
+        return try await api.publishTweet(
+            text: trimmed,
+            as: appKey,
+            tid: tid,
+            parentHash: hash,
+            channelId: nil,
+            embeds: nil
+        )
+    }
+
+    /// Publish a photo post. Uploads each image to /v1/upload first,
+    /// collects the media hashes, then submits a TWEET_ADD envelope
+    /// with `embeds = ["media:<hash>", ...]`. Throws fast if any
+    /// individual upload fails — partial state on the hub would be
+    /// confusing.
+    @discardableResult
+    func publishPhotoPost(
+        images: [(data: Data, contentType: String)],
+        caption: String
+    ) async throws -> String {
+        guard !images.isEmpty else {
+            throw ServiceError.noImages
+        }
+        let (appKey, tid, _) = try requireSignedIn()
+        var mediaRefs: [String] = []
+        mediaRefs.reserveCapacity(images.count)
+        for (idx, image) in images.enumerated() {
+            let hash = try await api.uploadMedia(
+                data: image.data,
+                contentType: image.contentType,
+                filename: "photo-\(idx).jpg"
+            )
+            mediaRefs.append("media:\(hash)")
+        }
+        return try await api.publishTweet(
+            text: caption,
+            as: appKey,
+            tid: tid,
+            parentHash: nil,
+            channelId: nil,
+            embeds: mediaRefs
+        )
+    }
+
+    // MARK: - Write helpers
+
+    private func requireWriteContext(post: Post) throws -> (AppKey, String, String) {
+        let (appKey, tid, _) = try requireSignedIn()
+        guard let hash = post.hash else {
+            throw ServiceError.notProtocolBacked
+        }
+        return (appKey, tid, hash)
+    }
+
+    /// Returns (appKey, tid, _) — the third tuple slot is reserved so
+    /// `requireWriteContext` can layer the hash on top with the same
+    /// shape.
+    private func requireSignedIn() throws -> (AppKey, String, String) {
+        guard let appKey = state.appKey, let tid = state.myTID else {
+            throw ServiceError.notSignedIn
+        }
+        return (appKey, tid, "")
+    }
+
     // MARK: - Mapping
 
     /// Tweet → Post. Returns nil for tweets without image embeds —
@@ -137,5 +269,25 @@ final class TribeService: ObservableObject {
             kind: kind,
             createdAt: n.createdAt
         )
+    }
+}
+
+enum ServiceError: LocalizedError {
+    case notSignedIn
+    case notProtocolBacked
+    case emptyText
+    case noImages
+
+    var errorDescription: String? {
+        switch self {
+        case .notSignedIn:
+            return "Sign in to do that."
+        case .notProtocolBacked:
+            return "This post isn't backed by the protocol yet."
+        case .emptyText:
+            return "Type something first."
+        case .noImages:
+            return "Pick at least one photo."
+        }
     }
 }
