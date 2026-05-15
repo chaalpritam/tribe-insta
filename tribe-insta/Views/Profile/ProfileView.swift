@@ -12,6 +12,7 @@ struct ProfileView: View {
     @State private var errorMessage: String?
     @State private var selectedTab: ProfileTab = .grid
     @State private var showSettings: Bool = false
+    @State private var showInbox: Bool = false
 
     enum ProfileTab: Hashable {
         case grid, reels, tagged
@@ -58,12 +59,16 @@ struct ProfileView: View {
                     }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button { showInbox = true } label: { Image(systemName: "paperplane") }
                     Button { showSettings = true } label: { Image(systemName: "gearshape") }
                 }
             }
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+        }
+        .sheet(isPresented: $showInbox) {
+            InboxView()
         }
         .task { await load() }
         .onChange(of: service.feedRevision) { _, _ in
