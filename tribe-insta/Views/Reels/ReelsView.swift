@@ -116,7 +116,9 @@ private struct ReelCard: View {
     let isCurrent: Bool
 
     @State private var player: AVPlayer? = nil
+    @State private var showComments: Bool = false
     @EnvironmentObject private var service: TribeService
+    @EnvironmentObject private var interactions: InteractionCache
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
@@ -139,11 +141,23 @@ private struct ReelCard: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black)
-        .onAppear { setupPlayer() }
+        .onAppear {
+            setupPlayer()
+            syncFromCache()
+        }
         .onDisappear { player?.pause() }
         .onChange(of: isCurrent) { _, current in
             if current { player?.play() } else { player?.pause() }
         }
+        .onChange(of: interactions.likedHashes) { _, _ in syncFromCache() }
+        .sheet(isPresented: $showComments) {
+            CommentsSheet(targetHash: reel.hash)
+        }
+    }
+
+    private func syncFromCache() {
+        guard let hash = reel.hash, interactions.loaded else { return }
+        reel.isLiked = interactions.contains(liked: hash)
     }
 
     @ViewBuilder
@@ -219,14 +233,13 @@ private struct ReelCard: View {
                 tint: reel.isLiked ? .red : .white,
                 count: reel.likesCount
             ) {
-                // Phase 4: wire REACTION_ADD type=1 with the reel's hash.
-                // Reels live in the messages table, so service.toggleLike
-                // works once we adapt it to take a Reel (or a target hash
-                // directly). Today the button toggles local state only.
-                reel.isLiked.toggle()
-                reel.likesCount += reel.isLiked ? 1 : -1
+                Task { await runLike() }
             }
-            railButton(system: "bubble.right", tint: .white, count: reel.commentsCount) { }
+            railButton(
+                system: "bubble.right",
+                tint: .white,
+                count: reel.commentsCount
+            ) { showComments = true }
             railButton(system: "paperplane", tint: .white, count: reel.sharesCount) { }
             Button { } label: {
                 Image(systemName: "ellipsis").font(.title3).foregroundStyle(.white)
@@ -249,6 +262,21 @@ private struct ReelCard: View {
             }
         }
         .buttonStyle(.plain)
+    }
+
+    @MainActor
+    private func runLike() async {
+        guard let hash = reel.hash else { return }
+        reel.isLiked.toggle()
+        reel.likesCount += reel.isLiked ? 1 : -1
+        do {
+            _ = try await service.toggleLikeByHash(hash)
+        } catch {
+            // Revert local optimistic state — the cache revert is
+            // handled inside the service.
+            reel.isLiked.toggle()
+            reel.likesCount += reel.isLiked ? 1 : -1
+        }
     }
 }
 

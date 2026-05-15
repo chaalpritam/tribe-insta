@@ -189,7 +189,24 @@ final class TribeService: ObservableObject {
     /// cache on failure and rethrows. Returns the new liked state.
     @discardableResult
     func toggleLike(_ post: Post) async throws -> Bool {
-        let (appKey, tid, hash) = try requireWriteContext(post: post)
+        guard let hash = post.hash else { throw ServiceError.notProtocolBacked }
+        return try await toggleLikeByHash(hash)
+    }
+
+    /// Toggle the bookmark on a post. Same optimistic-update pattern
+    /// as toggleLike.
+    @discardableResult
+    func toggleBookmark(_ post: Post) async throws -> Bool {
+        guard let hash = post.hash else { throw ServiceError.notProtocolBacked }
+        return try await toggleBookmarkByHash(hash)
+    }
+
+    /// Like/unlike toggle by target hash. Used by surfaces that don't
+    /// have a `Post` wrapper handy — reels (which are TWEET_ADD rows
+    /// stored in `messages`), comment cards, search hits, etc.
+    @discardableResult
+    func toggleLikeByHash(_ hash: String) async throws -> Bool {
+        let (appKey, tid, _) = try requireSignedIn()
         let wantsLiked = !state.interactions.contains(liked: hash)
         state.interactions.setLiked(wantsLiked, hash: hash)
         do {
@@ -205,11 +222,9 @@ final class TribeService: ObservableObject {
         }
     }
 
-    /// Toggle the bookmark on a post. Same optimistic-update pattern
-    /// as toggleLike.
     @discardableResult
-    func toggleBookmark(_ post: Post) async throws -> Bool {
-        let (appKey, tid, hash) = try requireWriteContext(post: post)
+    func toggleBookmarkByHash(_ hash: String) async throws -> Bool {
+        let (appKey, tid, _) = try requireSignedIn()
         let wantsSaved = !state.interactions.contains(bookmarked: hash)
         state.interactions.setBookmarked(wantsSaved, hash: hash)
         do {
@@ -224,11 +239,20 @@ final class TribeService: ObservableObject {
     /// Post a reply (an IG "comment") to a post. Returns the new hash.
     @discardableResult
     func reply(to post: Post, text: String) async throws -> String {
+        guard let hash = post.hash else { throw ServiceError.notProtocolBacked }
+        return try await reply(toHash: hash, text: text)
+    }
+
+    /// Reply directly against a target hash. Same envelope shape
+    /// (TWEET_ADD with parent_hash) — used by surfaces that don't
+    /// carry a `Post` wrapper (reels, deep-linked tweet pages, etc.).
+    @discardableResult
+    func reply(toHash hash: String, text: String) async throws -> String {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             throw ServiceError.emptyText
         }
-        let (appKey, tid, hash) = try requireWriteContext(post: post)
+        let (appKey, tid, _) = try requireSignedIn()
         return try await api.publishTweet(
             text: trimmed,
             as: appKey,

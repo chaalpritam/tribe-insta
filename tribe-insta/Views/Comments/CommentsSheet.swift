@@ -1,11 +1,13 @@
 import SwiftUI
 
-/// Reads replies to a post and lets the user post one of their own.
-/// "Comment" on the IG-shaped surface is just a reply Tweet with
-/// `parent_hash` set, so reading is `/v1/replies?hash=…` and writing
-/// is a regular `publishTweet` envelope.
+/// Reads replies to any TWEET_ADD-shaped target (post, reel) and lets
+/// the user post one. "Comment" is a reply Tweet with `parent_hash`
+/// set, so reading is `/v1/replies?hash=…` and writing is
+/// `publishTweet(parentHash:)`.
 struct CommentsSheet: View {
-    let post: Post
+    /// Hash of the target whose replies we're showing. nil makes the
+    /// sheet inert (used by #Preview blocks).
+    let targetHash: String?
 
     @EnvironmentObject private var service: TribeService
     @EnvironmentObject private var state: AppState
@@ -76,7 +78,7 @@ struct CommentsSheet: View {
             TextField("Add a comment…", text: $draft, axis: .vertical)
                 .lineLimit(1...4)
                 .focused($draftFocused)
-                .disabled(post.hash == nil || isSending)
+                .disabled(targetHash == nil || isSending)
             Button {
                 Task { await sendComment() }
             } label: {
@@ -94,14 +96,14 @@ struct CommentsSheet: View {
     }
 
     private var canSubmit: Bool {
-        post.hash != nil
+        targetHash != nil
             && !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && !isSending
     }
 
     @MainActor
     private func load() async {
-        guard let hash = post.hash else {
+        guard let hash = targetHash else {
             comments = []
             return
         }
@@ -117,10 +119,11 @@ struct CommentsSheet: View {
 
     @MainActor
     private func sendComment() async {
+        guard let hash = targetHash else { return }
         isSending = true
         defer { isSending = false }
         do {
-            _ = try await service.reply(to: post, text: draft)
+            _ = try await service.reply(toHash: hash, text: draft)
             draft = ""
             draftFocused = false
             await load()
@@ -151,7 +154,7 @@ struct CommentRow: View {
 }
 
 #Preview {
-    CommentsSheet(post: MockData.posts[0])
+    CommentsSheet(targetHash: nil)
         .environmentObject(AppState())
         .environmentObject(TribeService(state: AppState()))
 }

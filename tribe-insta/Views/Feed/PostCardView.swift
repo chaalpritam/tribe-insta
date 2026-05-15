@@ -28,7 +28,7 @@ struct PostCardView: View {
         .onChange(of: interactions.likedHashes) { _, _ in syncFromCache() }
         .onChange(of: interactions.bookmarkedHashes) { _, _ in syncFromCache() }
         .sheet(isPresented: $showComments) {
-            CommentsSheet(post: post)
+            CommentsSheet(targetHash: post.hash)
         }
     }
 
