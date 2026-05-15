@@ -1,6 +1,7 @@
 import SwiftUI
 import PhotosUI
 import UIKit
+import AVFoundation
 
 /// Compose sheet with three modes: Post (photo carousel), Story
 /// (single image, 24h auto-expire), Reel (single video).
@@ -47,6 +48,11 @@ struct CreatePostView: View {
         let url: URL
         let data: Data
         let contentType: String
+        /// First-frame thumbnail extracted by AVAssetImageGenerator.
+        /// nil when extraction failed (the picker handed back bytes
+        /// AVKit couldn't decode — should never happen for video/mp4
+        /// or video/quicktime which is what the picker filters to).
+        let thumbnail: UIImage?
     }
 
     var body: some View {
@@ -214,22 +220,45 @@ struct CreatePostView: View {
 
     private var videoPreview: some View {
         ZStack(alignment: .topTrailing) {
-            // No native preview frame extraction wired up for Phase 3 —
-            // just show a placeholder card with the filename + size.
-            RoundedRectangle(cornerRadius: 12)
-                .fill(LinearGradient(colors: [.black, .gray.opacity(0.7)],
-                                     startPoint: .top, endPoint: .bottom))
-                .aspectRatio(9.0/16.0, contentMode: .fit)
-                .overlay(
-                    VStack(spacing: 8) {
-                        Image(systemName: "video.fill")
-                            .font(.largeTitle).foregroundStyle(.white)
+            Group {
+                if let thumb = loadedVideo?.thumbnail {
+                    Image(uiImage: thumb)
+                        .resizable()
+                        .scaledToFill()
+                        .clipped()
+                } else {
+                    LinearGradient(
+                        colors: [.black, .gray.opacity(0.7)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                }
+            }
+            .aspectRatio(9.0/16.0, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                LinearGradient(
+                    colors: [.black.opacity(0.0), .black.opacity(0.4)],
+                    startPoint: .center, endPoint: .bottom
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            )
+            .overlay(
+                VStack {
+                    Spacer()
+                    HStack(spacing: 8) {
+                        Image(systemName: "play.fill")
+                            .font(.callout).foregroundStyle(.white)
                         if let video = loadedVideo {
                             Text("\((Double(video.data.count) / 1_048_576).rounded(toPlaces: 1)) MB · \(video.contentType)")
-                                .font(.caption).foregroundStyle(.white.opacity(0.8))
+                                .font(.caption).foregroundStyle(.white)
                         }
+                        Spacer()
                     }
-                )
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 10)
+                }
+            )
+
             Button {
                 loadedVideo = nil
                 pickerItems = []
@@ -360,10 +389,16 @@ struct CreatePostView: View {
                 loadedVideo = nil
                 return
             }
+            let resolvedContentType = contentType(for: first) ?? "video/mp4"
+            let thumbnail = await Self.extractFirstFrame(
+                data: data,
+                contentType: resolvedContentType
+            )
             loadedVideo = LoadedVideo(
                 url: URL(fileURLWithPath: "(picker)"),
                 data: data,
-                contentType: contentType(for: first) ?? "video/mp4"
+                contentType: resolvedContentType,
+                thumbnail: thumbnail
             )
             photoLoadeds = []
         case .post, .story:
@@ -432,6 +467,39 @@ struct CreatePostView: View {
         case "public.mpeg-4": return "video/mp4"
         case "com.apple.quicktime-movie": return "video/quicktime"
         default: return nil
+        }
+    }
+
+    // MARK: Video thumbnail
+
+    /// Write the picker's raw bytes to a temp file, load as AVURLAsset,
+    /// and pull a frame at ~0.1s in. Doing this off-actor on a detached
+    /// Task so it doesn't block the main run loop during the picker's
+    /// dismissal animation. Returns nil if the bytes don't decode.
+    private static func extractFirstFrame(
+        data: Data,
+        contentType: String
+    ) async -> UIImage? {
+        let ext = contentType == "video/quicktime" ? "mov" : "mp4"
+        let tmp = FileManager.default.temporaryDirectory
+            .appendingPathComponent("reel-\(UUID().uuidString).\(ext)")
+        guard (try? data.write(to: tmp)) != nil else { return nil }
+        defer { try? FileManager.default.removeItem(at: tmp) }
+
+        return await withCheckedContinuation { cont in
+            let asset = AVURLAsset(url: tmp)
+            let gen = AVAssetImageGenerator(asset: asset)
+            gen.appliesPreferredTrackTransform = true
+            // First playable frame, not the very first sample at 0:
+            // some encoders open with black or sync padding.
+            let time = CMTime(seconds: 0.1, preferredTimescale: 600)
+            gen.generateCGImageAsynchronously(for: time) { cg, _, _ in
+                if let cg {
+                    cont.resume(returning: UIImage(cgImage: cg))
+                } else {
+                    cont.resume(returning: nil)
+                }
+            }
         }
     }
 
