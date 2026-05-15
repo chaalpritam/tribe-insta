@@ -122,6 +122,24 @@ public extension HubClient {
         return res.users
     }
 
+    // MARK: - DM key lookup
+
+    /// Look up another TID's registered x25519 pubkey so we can
+    /// encrypt to them. Returns nil if the user hasn't registered.
+    func fetchDMPublicKey(_ tid: String) async throws -> Data? {
+        struct R: Decodable {
+            let x25519_pubkey: String?
+            let x25519Pubkey: String?
+        }
+        do {
+            let r: R = try await get("v1/dm/key/\(tid)")
+            let raw = r.x25519_pubkey ?? r.x25519Pubkey
+            return raw.flatMap { Data(base64Encoded: $0) }
+        } catch {
+            return nil
+        }
+    }
+
     // MARK: - Stories
 
     /// `/v1/stories` — every author's currently-active stories,
