@@ -15,6 +15,7 @@ struct tribe_instaApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
+                .environmentObject(appState.interactions)
                 .environmentObject(TribeService(state: appState))
         }
     }

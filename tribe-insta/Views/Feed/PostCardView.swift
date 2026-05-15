@@ -8,6 +8,10 @@ struct PostCardView: View {
 
     @EnvironmentObject private var service: TribeService
     @EnvironmentObject private var state: AppState
+    /// Injected separately because SwiftUI doesn't observe nested
+    /// ObservableObjects through their parent — without this, cache
+    /// refreshes wouldn't trigger our onChange handlers.
+    @EnvironmentObject private var interactions: InteractionCache
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -21,8 +25,8 @@ struct PostCardView: View {
         }
         .padding(.bottom, 12)
         .onAppear { syncFromCache() }
-        .onChange(of: state.interactions.likedHashes) { _, _ in syncFromCache() }
-        .onChange(of: state.interactions.bookmarkedHashes) { _, _ in syncFromCache() }
+        .onChange(of: interactions.likedHashes) { _, _ in syncFromCache() }
+        .onChange(of: interactions.bookmarkedHashes) { _, _ in syncFromCache() }
         .sheet(isPresented: $showComments) {
             CommentsSheet(post: post)
         }
@@ -202,10 +206,9 @@ struct PostCardView: View {
     /// from pull-to-refresh).
     private func syncFromCache() {
         guard let hash = post.hash else { return }
-        let cached = state.interactions
-        if cached.loaded {
-            post.isLiked = cached.contains(liked: hash)
-            post.isSaved = cached.contains(bookmarked: hash)
+        if interactions.loaded {
+            post.isLiked = interactions.contains(liked: hash)
+            post.isSaved = interactions.contains(bookmarked: hash)
         }
     }
 
@@ -228,7 +231,7 @@ struct PostCardView: View {
             bumpHeart = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) { bumpHeart = false }
         }
-        guard wantsLiked != state.interactions.contains(liked: post.hash!) else { return }
+        guard wantsLiked != interactions.contains(liked: post.hash!) else { return }
         do {
             _ = try await service.toggleLike(post)
         } catch {
@@ -256,7 +259,9 @@ struct PostCardView: View {
 }
 
 #Preview {
-    ScrollView { PostCardView(post: MockData.posts[0]) }
-        .environmentObject(AppState())
-        .environmentObject(TribeService(state: AppState()))
+    let state = AppState()
+    return ScrollView { PostCardView(post: MockData.posts[0]) }
+        .environmentObject(state)
+        .environmentObject(state.interactions)
+        .environmentObject(TribeService(state: state))
 }
