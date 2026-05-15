@@ -61,6 +61,10 @@ final class AppState: ObservableObject {
 
     private(set) var api: HubClient
     private(set) var er: ERClient
+    /// Per-session liked / bookmarked set. Lazy-loaded on first
+    /// PostCardView render with a known TID; refreshed on sign-in and
+    /// pull-to-refresh. Write paths keep it in sync optimistically.
+    let interactions: InteractionCache
 
     init() {
         // One-time correctness gate: trap fast on startup if an
@@ -93,10 +97,18 @@ final class AppState: ObservableObject {
         self.appKey = restoredKey
         self.phase = (storedTID != nil && restoredKey != nil) ? .ready : .onboarding
 
+        // InteractionCache holds a weak ref back to self so it can
+        // read `api` / `myTID` lazily without an init-order cycle.
+        self.interactions = InteractionCache()
+        self.interactions.attach(to: self)
+
         // Best-effort fetch of profile metadata so the UI shows the
         // right name / wallet on first paint after a relaunch.
         if let tid = storedTID {
-            Task { [weak self] in await self?.refreshIdentityMetadata(tid: tid) }
+            Task { [weak self] in
+                await self?.refreshIdentityMetadata(tid: tid)
+                await self?.interactions.refresh()
+            }
         }
     }
 
@@ -110,6 +122,7 @@ final class AppState: ObservableObject {
         self.myTID = tid
         Task { [weak self] in
             await self?.refreshIdentityMetadata(tid: tid)
+            await self?.interactions.refresh()
         }
     }
 
@@ -121,6 +134,7 @@ final class AppState: ObservableObject {
         myTID = nil
         myUsername = nil
         walletAddress = nil
+        interactions.clear()
     }
 
     func refreshIdentityMetadata() async {
