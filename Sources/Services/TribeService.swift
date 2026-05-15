@@ -22,7 +22,10 @@ final class TribeService: ObservableObject {
         self.state = state
     }
 
-    private var api: HubClient { state.api }
+    /// Public so a few surfaces (the story viewers sheet's avatar
+    /// resolver, mainly) can resolve media URLs without re-typing the
+    /// HubClient handle.
+    var api: HubClient { state.api }
 
     // MARK: - Feed
 

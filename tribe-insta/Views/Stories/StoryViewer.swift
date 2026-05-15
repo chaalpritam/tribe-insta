@@ -26,6 +26,9 @@ struct StoryViewer: View {
     @State private var storyIndex: Int = 0
     @State private var progress: Double = 0
     @State private var paused: Bool = false
+    @State private var showViewers: Bool = false
+
+    @EnvironmentObject private var state: AppState
 
     /// Seen this session — keeps repeat STORY_VIEW envelopes off the
     /// wire while the user scrubs back and forth.
@@ -102,10 +105,18 @@ struct StoryViewer: View {
                 if let caption = story.caption, !caption.isEmpty {
                     captionBubble(caption)
                 }
+                if isOwnStory(story) {
+                    seenByFooter(story: story)
+                }
             }
             .padding(.horizontal, 12)
             .padding(.top, 8)
             .padding(.bottom, 32)
+        }
+        .sheet(isPresented: $showViewers) {
+            if let s = currentStory {
+                StoryViewersSheet(story: s)
+            }
         }
         // Long-press anywhere pauses; release resumes. Doesn't disable
         // the tap zones — we use minimumDuration so a normal tap (which
@@ -163,6 +174,33 @@ struct StoryViewer: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
             .background(.black.opacity(0.4), in: Capsule())
+    }
+
+    /// Bottom-of-viewer "Seen by N" tap target. Only mounted when the
+    /// current story belongs to the signed-in user — non-authors get
+    /// the (Phase 5+) DM reply composer in this slot instead.
+    private func seenByFooter(story: Story) -> some View {
+        Button { showViewers = true } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "eye.fill")
+                    .font(.caption).foregroundStyle(.white)
+                Text("Seen by")
+                    .font(.subheadline).fontWeight(.semibold)
+                    .foregroundStyle(.white)
+                Image(systemName: "chevron.up")
+                    .font(.caption2).foregroundStyle(.white.opacity(0.7))
+                Spacer()
+            }
+            .padding(.horizontal, 14).padding(.vertical, 8)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func isOwnStory(_ story: Story) -> Bool {
+        guard let myTID = state.myTID,
+              let authorTID = story.author.tid
+        else { return false }
+        return myTID == authorTID
     }
 
     private var emptyState: some View {

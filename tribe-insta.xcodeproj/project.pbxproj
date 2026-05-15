@@ -16,6 +16,7 @@
 		33D348283C32B990DCEA6F70 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF18C41C8AF4264D9D5D209 /* ActivityView.swift */; };
 		360CEF865AAD5254C9C62381 /* HubStory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A587FA9932FEA98A7C746DE /* HubStory.swift */; };
 		39ECF5798BEC935E4D799C97 /* InteractionReads.swift in Sources */ = {isa = PBXBuildFile; fileRef = E31CE2078128FB4E7987FF55 /* InteractionReads.swift */; };
+		3A13ECB8FF958330E38AFADD /* StoryViewersSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DB0BC39DDB308F616917A2 /* StoryViewersSheet.swift */; };
 		3CBB1D737F7C77881134351C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5762092836E62153CF535193 /* SettingsView.swift */; };
 		3CC8A49FF07F7ACDB4D5CC17 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A11EDA9969ED7F1C447D2B5 /* ProfileView.swift */; };
 		45AABE6EC1225DA1EA61AFFA /* HubUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C8C449589D7E5DAD3E7395 /* HubUser.swift */; };
@@ -74,6 +75,7 @@
 		705F9EA1D7556BB8DFFFF72A /* tribe_instaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = tribe_instaApp.swift; sourceTree = "<group>"; };
 		711D4AE40462E6FD20E14705 /* Blake3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blake3.swift; sourceTree = "<group>"; };
 		91614C9851F38B640268C473 /* AppKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppKey.swift; sourceTree = "<group>"; };
+		96DB0BC39DDB308F616917A2 /* StoryViewersSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryViewersSheet.swift; sourceTree = "<group>"; };
 		97C895D159D7EA18448292C2 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		9A587FA9932FEA98A7C746DE /* HubStory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubStory.swift; sourceTree = "<group>"; };
 		A1CB66D4019F4131F69FD8D5 /* Channel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Channel.swift; sourceTree = "<group>"; };
@@ -232,6 +234,7 @@
 			isa = PBXGroup;
 			children = (
 				2A23AA6166BA75C4602DC265 /* StoryViewer.swift */,
+				96DB0BC39DDB308F616917A2 /* StoryViewersSheet.swift */,
 			);
 			path = Stories;
 			sourceTree = "<group>";
@@ -436,6 +439,7 @@
 				3CBB1D737F7C77881134351C /* SettingsView.swift in Sources */,
 				51FB05FF22FE26D93F6F78E5 /* StoriesBar.swift in Sources */,
 				8096ED1EE93EC518954E966E /* StoryViewer.swift in Sources */,
+				3A13ECB8FF958330E38AFADD /* StoryViewersSheet.swift in Sources */,
 				F95850A5D1F31CD25FC85F92 /* TribeService.swift in Sources */,
 				B24289EFDCA921F1B5876743 /* Tweet.swift in Sources */,
 				DE5E092EA86F5E02B4830063 /* tribe_instaApp.swift in Sources */,
