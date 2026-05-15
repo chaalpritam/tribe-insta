@@ -36,6 +36,9 @@ struct SearchView: View {
             }
         }
         .task { await loadExplore() }
+        .onChange(of: service.feedRevision) { _, _ in
+            Task { await loadExplore() }
+        }
     }
 
     @MainActor

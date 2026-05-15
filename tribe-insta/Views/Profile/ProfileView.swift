@@ -66,6 +66,9 @@ struct ProfileView: View {
             SettingsView()
         }
         .task { await load() }
+        .onChange(of: service.feedRevision) { _, _ in
+            Task { await load() }
+        }
     }
 
     private var tabSelector: some View {
