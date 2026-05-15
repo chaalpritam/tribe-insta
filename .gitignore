@@ -1,0 +1,29 @@
+# Xcode build output
+build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Project.yml is the source of truth, but the generated .xcodeproj is
+# committed so a fresh clone opens directly in Xcode without needing
+# xcodegen installed. Re-run `xcodegen generate` after editing Project.yml
+# (it produces deterministic GUIDs so the diff stays small).
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+Package.pins
+Package.resolved
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor
+.vscode/
+*.swp
+*~
