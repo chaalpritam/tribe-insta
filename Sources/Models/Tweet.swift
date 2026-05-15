@@ -16,6 +16,11 @@ public struct Tweet: Decodable, Identifiable, Hashable {
     public let timestamp: Date
     public let username: String?
     public let replyCount: Int?
+    /// Phase 6: server-side aggregate counts. Null when the endpoint
+    /// hasn't been migrated yet (older hub builds); the UI treats nil
+    /// as 0 rather than hiding the count.
+    public let reactionCount: Int?
+    public let bookmarkCount: Int?
     public let retweetedByTid: String?
     public let retweetedByUsername: String?
     public let retweetedAt: Date?
@@ -39,6 +44,8 @@ public struct Tweet: Decodable, Identifiable, Hashable {
         case parentHash = "parent_hash"
         case channelId = "channel_id"
         case replyCount = "reply_count"
+        case reactionCount = "reaction_count"
+        case bookmarkCount = "bookmark_count"
         case retweetedByTid = "retweeted_by_tid"
         case retweetedByUsername = "retweeted_by_username"
         case retweetedAt = "retweeted_at"
@@ -56,6 +63,8 @@ public struct Tweet: Decodable, Identifiable, Hashable {
         self.embeds = try c.decodeIfPresent([String].self, forKey: .embeds)
         self.username = try c.decodeIfPresent(String.self, forKey: .username)
         self.replyCount = try c.decodeIfPresent(Int.self, forKey: .replyCount)
+        self.reactionCount = try c.decodeIfPresent(Int.self, forKey: .reactionCount)
+        self.bookmarkCount = try c.decodeIfPresent(Int.self, forKey: .bookmarkCount)
         self.timestamp = try HubDecode.date(c, forKey: .timestamp)
         self.retweetedByTid = try HubDecode.bigIntIfPresent(c, forKey: .retweetedByTid)
         self.retweetedByUsername = try c.decodeIfPresent(String.self, forKey: .retweetedByUsername)
@@ -78,6 +87,8 @@ public struct Tweet: Decodable, Identifiable, Hashable {
         timestamp: Date,
         username: String?,
         replyCount: Int?,
+        reactionCount: Int? = nil,
+        bookmarkCount: Int? = nil,
         retweetedByTid: String? = nil,
         retweetedByUsername: String? = nil,
         retweetedAt: Date? = nil,
@@ -94,6 +105,8 @@ public struct Tweet: Decodable, Identifiable, Hashable {
         self.timestamp = timestamp
         self.username = username
         self.replyCount = replyCount
+        self.reactionCount = reactionCount
+        self.bookmarkCount = bookmarkCount
         self.retweetedByTid = retweetedByTid
         self.retweetedByUsername = retweetedByUsername
         self.retweetedAt = retweetedAt

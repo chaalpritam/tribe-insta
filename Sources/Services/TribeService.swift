@@ -476,10 +476,11 @@ final class TribeService: ObservableObject {
             author: author,
             imageURLs: images,
             caption: tweet.text ?? "",
-            // /v1/feed rows don't carry reaction aggregates today.
-            // Phase 2's interaction cache will fold counts in from the
-            // per-tweet endpoint when a card is on-screen.
-            likesCount: 0,
+            // Phase 6: aggregate counts come from /v1/feed's correlated
+            // subqueries. Older hub builds that haven't migrated yet
+            // return nil → 0 (counter stays blank, but PostCardView's
+            // likesRow hides empty counts anyway).
+            likesCount: tweet.reactionCount ?? 0,
             commentsCount: tweet.replyCount ?? 0,
             createdAt: tweet.timestamp
         )
@@ -542,7 +543,7 @@ final class TribeService: ObservableObject {
             videoURL: videoURL,
             thumbnailURL: nil,
             caption: tweet.text ?? "",
-            likesCount: 0,
+            likesCount: tweet.reactionCount ?? 0,
             commentsCount: tweet.replyCount ?? 0,
             sharesCount: 0,
             audioTitle: tweet.audioTitle ?? "Original audio",
