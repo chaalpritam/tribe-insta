@@ -61,11 +61,12 @@ final class TribeService: ObservableObject {
 
     // MARK: - Stories
 
-    /// All currently-active stories across the network. Phase 4 may
-    /// trim to the follow graph; for now everyone's active stories
-    /// surface so the demo feels populated.
+    /// Active stories. When the user is signed in we pass their TID
+    /// through so the hub returns only stories from authors they
+    /// follow + their own; signed-out renders see everyone (useful
+    /// for the demo / landing experience).
     func stories(limit: Int = 100) async throws -> [Story] {
-        let raw = try await api.fetchStories(limit: limit)
+        let raw = try await api.fetchStories(limit: limit, viewerTID: state.myTID)
         return raw.map(mapToStory)
     }
 

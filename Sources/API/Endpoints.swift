@@ -125,13 +125,14 @@ public extension HubClient {
     // MARK: - Stories
 
     /// `/v1/stories` — every author's currently-active stories,
-    /// newest-first within each author. Phase 4 will add a follow-graph
-    /// filter; today the response includes everyone.
-    func fetchStories(limit: Int = 100) async throws -> [HubStory] {
-        let res: HubStoryListResponse = try await get(
-            "v1/stories",
-            query: ["limit": String(limit)]
-        )
+    /// newest-first within each author. Pass `viewerTID` to opt into
+    /// the follow-graph filter (only authors the viewer follows + own
+    /// stories surface); omit it to see every active story (used as a
+    /// fallback while onboarding hasn't populated my TID).
+    func fetchStories(limit: Int = 100, viewerTID: String? = nil) async throws -> [HubStory] {
+        var query: [String: String] = ["limit": String(limit)]
+        if let viewerTID, !viewerTID.isEmpty { query["viewer_tid"] = viewerTID }
+        let res: HubStoryListResponse = try await get("v1/stories", query: query)
         return res.stories
     }
 
