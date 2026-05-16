@@ -3,26 +3,34 @@ import SwiftUI
 struct StoriesBar: View {
     let currentUser: User
     let stories: [Story]
+    let onStoryTap: (Story) -> Void
+    let onYourStoryTap: () -> Void
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(alignment: .top, spacing: 14) {
-                storyItem(
-                    avatarURL: currentUser.avatarURL,
-                    label: "Your story",
-                    isOwn: true,
-                    hasUnseen: false,
-                    isViewed: false
-                )
+                Button { onYourStoryTap() } label: {
+                    storyItem(
+                        avatarURL: currentUser.avatarURL,
+                        label: "Your story",
+                        isOwn: true,
+                        hasUnseen: false,
+                        isViewed: false
+                    )
+                }
+                .buttonStyle(.plain)
 
                 ForEach(stories) { story in
-                    storyItem(
-                        avatarURL: story.author.avatarURL,
-                        label: story.author.username,
-                        isOwn: false,
-                        hasUnseen: true,
-                        isViewed: story.isViewed
-                    )
+                    Button { onStoryTap(story) } label: {
+                        storyItem(
+                            avatarURL: story.author.avatarURL,
+                            label: story.author.username,
+                            isOwn: false,
+                            hasUnseen: true,
+                            isViewed: story.isViewed
+                        )
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 12)
@@ -55,5 +63,12 @@ struct StoriesBar: View {
 }
 
 #Preview {
-    StoriesBar(currentUser: MockData.currentUser, stories: MockData.stories)
+    let state = AppState()
+    return StoriesBar(
+        currentUser: MockData.currentUser,
+        stories: MockData.stories,
+        onStoryTap: { _ in },
+        onYourStoryTap: { }
+    )
+    .environmentObject(state)
 }

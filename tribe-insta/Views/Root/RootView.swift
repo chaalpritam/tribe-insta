@@ -1,5 +1,8 @@
 import SwiftUI
 
+/// Six-tab shell. Each tab fetches its own data through TribeService
+/// instead of receiving pre-loaded MockData. Create stays a sheet —
+/// the "+" tab intercepts selection and presents it modally.
 struct RootView: View {
     enum Tab: Hashable {
         case feed, search, create, reels, activity, profile
@@ -10,15 +13,11 @@ struct RootView: View {
 
     var body: some View {
         TabView(selection: tabBinding) {
-            FeedView(
-                currentUser: MockData.currentUser,
-                stories: MockData.stories,
-                posts: MockData.posts
-            )
-            .tabItem { Label("Home", systemImage: selection == .feed ? "house.fill" : "house") }
-            .tag(Tab.feed)
+            FeedView()
+                .tabItem { Label("Home", systemImage: selection == .feed ? "house.fill" : "house") }
+                .tag(Tab.feed)
 
-            SearchView(posts: MockData.explorePosts, users: MockData.users)
+            SearchView()
                 .tabItem { Label("Search", systemImage: "magnifyingglass") }
                 .tag(Tab.search)
 
@@ -26,17 +25,17 @@ struct RootView: View {
                 .tabItem { Label("Create", systemImage: "plus.app") }
                 .tag(Tab.create)
 
-            ReelsView(reels: MockData.reels)
+            ReelsView()
                 .tabItem { Label("Reels", systemImage: "play.square") }
                 .tag(Tab.reels)
 
-            ActivityView(notifications: MockData.notifications)
+            ActivityView()
                 .tabItem {
                     Label("Activity", systemImage: selection == .activity ? "heart.fill" : "heart")
                 }
                 .tag(Tab.activity)
 
-            ProfileView(user: MockData.currentUser, posts: MockData.myPosts)
+            ProfileView()
                 .tabItem { Label("Profile", systemImage: "person.crop.circle") }
                 .tag(Tab.profile)
         }
@@ -61,4 +60,6 @@ struct RootView: View {
 
 #Preview {
     RootView()
+        .environmentObject(AppState())
+        .environmentObject(TribeService(state: AppState()))
 }

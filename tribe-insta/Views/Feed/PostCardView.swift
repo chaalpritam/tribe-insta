@@ -4,6 +4,14 @@ struct PostCardView: View {
     @State var post: Post
     @State private var currentMediaIndex: Int = 0
     @State private var bumpHeart: Bool = false
+    @State private var showComments: Bool = false
+
+    @EnvironmentObject private var service: TribeService
+    @EnvironmentObject private var state: AppState
+    /// Injected separately because SwiftUI doesn't observe nested
+    /// ObservableObjects through their parent — without this, cache
+    /// refreshes wouldn't trigger our onChange handlers.
+    @EnvironmentObject private var interactions: InteractionCache
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -16,6 +24,12 @@ struct PostCardView: View {
             timestampRow
         }
         .padding(.bottom, 12)
+        .onAppear { syncFromCache() }
+        .onChange(of: interactions.likedHashes) { _, _ in syncFromCache() }
+        .onChange(of: interactions.bookmarkedHashes) { _, _ in syncFromCache() }
+        .sheet(isPresented: $showComments) {
+            CommentsSheet(targetHash: post.hash)
+        }
     }
 
     // MARK: Header
@@ -57,7 +71,7 @@ struct PostCardView: View {
                         .tag(idx)
                         .contentShape(Rectangle())
                         .onTapGesture(count: 2) {
-                            toggleLike(force: true)
+                            Task { await runLike(force: true) }
                         }
                 }
             }
@@ -110,20 +124,20 @@ struct PostCardView: View {
 
     private var actionRow: some View {
         HStack(spacing: 14) {
-            Button { toggleLike() } label: {
+            Button { Task { await runLike() } } label: {
                 Image(systemName: post.isLiked ? "heart.fill" : "heart")
                     .font(.title3)
                     .foregroundStyle(post.isLiked ? Color.red : Color.primary)
                     .contentTransition(.symbolEffect(.replace))
             }
-            Button { } label: {
+            Button { showComments = true } label: {
                 Image(systemName: "bubble.right").font(.title3).foregroundStyle(.primary)
             }
             Button { } label: {
                 Image(systemName: "paperplane").font(.title3).foregroundStyle(.primary)
             }
             Spacer()
-            Button { post.isSaved.toggle() } label: {
+            Button { Task { await runBookmark() } } label: {
                 Image(systemName: post.isSaved ? "bookmark.fill" : "bookmark")
                     .font(.title3)
                     .foregroundStyle(.primary)
@@ -136,10 +150,14 @@ struct PostCardView: View {
     }
 
     private var likesRow: some View {
-        Text("\(Formatters.compactCount(post.likesCount)) likes")
-            .font(.subheadline).fontWeight(.semibold)
-            .padding(.horizontal, 12)
-            .padding(.top, 6)
+        Group {
+            if post.likesCount > 0 {
+                Text("\(Formatters.compactCount(post.likesCount)) likes")
+                    .font(.subheadline).fontWeight(.semibold)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 6)
+            }
+        }
     }
 
     private var captionRow: some View {
@@ -159,7 +177,7 @@ struct PostCardView: View {
     private var commentsPreview: some View {
         Group {
             if post.commentsCount > 0 {
-                Button { } label: {
+                Button { showComments = true } label: {
                     Text("View all \(Formatters.compactCount(post.commentsCount)) comments")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -182,21 +200,68 @@ struct PostCardView: View {
 
     // MARK: Actions
 
-    private func toggleLike(force: Bool = false) {
-        if force {
-            if !post.isLiked {
-                post.isLiked = true
-                post.likesCount += 1
-            }
-            bumpHeart = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) { bumpHeart = false }
-        } else {
+    /// Reads the InteractionCache and pushes its truth onto the local
+    /// optimistic state. Called on first render and whenever the cache's
+    /// liked / bookmarked sets change (e.g. after `interactions.refresh()`
+    /// from pull-to-refresh).
+    private func syncFromCache() {
+        guard let hash = post.hash else { return }
+        if interactions.loaded {
+            post.isLiked = interactions.contains(liked: hash)
+            post.isSaved = interactions.contains(bookmarked: hash)
+        }
+    }
+
+    /// Optimistic like toggle. Updates the local state first so the
+    /// heart animates immediately; TribeService handles cache mutation
+    /// + hub round-trip and reverts on failure (cache change pings us
+    /// back through onChange).
+    @MainActor
+    private func runLike(force: Bool = false) async {
+        guard post.hash != nil else { return }
+        let wantsLiked = force ? true : !post.isLiked
+        if force && post.isLiked == false {
+            post.isLiked = true
+            post.likesCount += 1
+        } else if !force {
             post.isLiked.toggle()
             post.likesCount += post.isLiked ? 1 : -1
+        }
+        if force {
+            bumpHeart = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) { bumpHeart = false }
+        }
+        guard wantsLiked != interactions.contains(liked: post.hash!) else { return }
+        do {
+            _ = try await service.toggleLike(post)
+        } catch {
+            // Revert optimistic counter — cache revert handled by service.
+            if force {
+                post.isLiked = false
+                post.likesCount -= 1
+            } else {
+                post.isLiked.toggle()
+                post.likesCount += post.isLiked ? 1 : -1
+            }
+        }
+    }
+
+    @MainActor
+    private func runBookmark() async {
+        guard post.hash != nil else { return }
+        post.isSaved.toggle()
+        do {
+            _ = try await service.toggleBookmark(post)
+        } catch {
+            post.isSaved.toggle()
         }
     }
 }
 
 #Preview {
-    ScrollView { PostCardView(post: MockData.posts[0]) }
+    let state = AppState()
+    return ScrollView { PostCardView(post: MockData.posts[0]) }
+        .environmentObject(state)
+        .environmentObject(state.interactions)
+        .environmentObject(TribeService(state: state))
 }

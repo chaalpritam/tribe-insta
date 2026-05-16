@@ -1,11 +1,25 @@
 import SwiftUI
 
+/// Routes between Onboarding and the main TabView based on whether
+/// we have a provisioned identity in AppState.
 struct ContentView: View {
+    @EnvironmentObject private var state: AppState
+
     var body: some View {
-        RootView()
+        switch state.phase {
+        case .onboarding:
+            OnboardingView()
+        case .ready:
+            RootView()
+        }
     }
 }
 
-#Preview {
+#Preview("Onboarding") {
     ContentView()
+        .environmentObject({
+            let s = AppState()
+            return s
+        }())
+        .environmentObject(TribeService(state: AppState()))
 }

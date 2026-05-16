@@ -1,27 +1,24 @@
 import SwiftUI
+import AVKit
 
+/// Vertical reels pager. Pulls /v1/reels through TribeService and
+/// renders each row as a full-screen VideoPlayer that autoplays on
+/// appear and pauses on disappear. The trick to making TabView act
+/// vertical is the same rotation hack the original mock used.
 struct ReelsView: View {
-    let reels: [Reel]
+    @EnvironmentObject private var service: TribeService
 
+    @State private var reels: [Reel] = []
     @State private var currentIndex: Int = 0
+    @State private var isLoading: Bool = false
+    @State private var errorMessage: String?
 
     var body: some View {
         GeometryReader { proxy in
-            TabView(selection: $currentIndex) {
-                ForEach(Array(reels.enumerated()), id: \.element.id) { idx, reel in
-                    ReelCard(reel: reel)
-                        .frame(width: proxy.size.width, height: proxy.size.height)
-                        .rotationEffect(.degrees(-90))
-                        .tag(idx)
-                }
-            }
-            .frame(width: proxy.size.height, height: proxy.size.width)
-            .rotationEffect(.degrees(90), anchor: .topLeading)
-            .offset(x: proxy.size.width)
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .background(Color.black)
-            .ignoresSafeArea()
+            content(size: proxy.size)
         }
+        .background(Color.black)
+        .ignoresSafeArea()
         .overlay(alignment: .top) {
             HStack {
                 Text("Reels")
@@ -37,16 +34,95 @@ struct ReelsView: View {
             .padding(.horizontal, 16)
             .padding(.top, 8)
         }
+        .task { await load() }
+        .onChange(of: service.feedRevision) { _, _ in
+            Task { await load() }
+        }
+    }
+
+    @ViewBuilder
+    private func content(size: CGSize) -> some View {
+        if reels.isEmpty {
+            emptyState
+        } else {
+            TabView(selection: $currentIndex) {
+                ForEach(Array(reels.enumerated()), id: \.element.id) { idx, reel in
+                    ReelCard(reel: reel, isCurrent: idx == currentIndex)
+                        .frame(width: size.width, height: size.height)
+                        .rotationEffect(.degrees(-90))
+                        .tag(idx)
+                }
+            }
+            .frame(width: size.height, height: size.width)
+            .rotationEffect(.degrees(90), anchor: .topLeading)
+            .offset(x: size.width)
+            .tabViewStyle(.page(indexDisplayMode: .never))
+        }
+    }
+
+    @ViewBuilder
+    private var emptyState: some View {
+        VStack(spacing: 14) {
+            if isLoading {
+                ProgressView()
+                    .tint(.white)
+            } else if let errorMessage {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.title2)
+                    .foregroundStyle(.white)
+                Text("Couldn't load reels")
+                    .font(.headline).foregroundStyle(.white)
+                Text(errorMessage)
+                    .font(.caption).foregroundStyle(.white.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                Button("Retry") { Task { await load() } }
+                    .foregroundStyle(.white)
+            } else {
+                Image(systemName: "play.square.stack")
+                    .font(.system(size: 56))
+                    .foregroundStyle(.white.opacity(0.8))
+                Text("No reels yet")
+                    .font(.title3).fontWeight(.semibold)
+                    .foregroundStyle(.white)
+                Text("Share a video from the + tab to start the feed.")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    @MainActor
+    private func load() async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            reels = try await service.reels()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
     }
 }
 
+/// Single reel card. Owns its AVPlayer so the player survives
+/// horizontal re-renders inside the TabView; isCurrent toggles
+/// playback so the off-screen cards don't keep playing audio.
 private struct ReelCard: View {
     @State var reel: Reel
+    let isCurrent: Bool
+
+    @State private var player: AVPlayer? = nil
+    @State private var showComments: Bool = false
+    @EnvironmentObject private var service: TribeService
+    @EnvironmentObject private var interactions: InteractionCache
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            RemoteImage(url: reel.thumbnailURL)
-                .clipped()
+            videoLayer
                 .overlay(
                     LinearGradient(
                         colors: [.clear, .clear, .black.opacity(0.55)],
@@ -65,6 +141,53 @@ private struct ReelCard: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black)
+        .onAppear {
+            setupPlayer()
+            syncFromCache()
+        }
+        .onDisappear { player?.pause() }
+        .onChange(of: isCurrent) { _, current in
+            if current { player?.play() } else { player?.pause() }
+        }
+        .onChange(of: interactions.likedHashes) { _, _ in syncFromCache() }
+        .sheet(isPresented: $showComments) {
+            CommentsSheet(targetHash: reel.hash)
+        }
+    }
+
+    private func syncFromCache() {
+        guard let hash = reel.hash, interactions.loaded else { return }
+        reel.isLiked = interactions.contains(liked: hash)
+    }
+
+    @ViewBuilder
+    private var videoLayer: some View {
+        if let url = reel.videoURL {
+            VideoPlayer(player: player ?? AVPlayer(url: url))
+                .disabled(true)
+        } else {
+            // Fallback for mock data / rows without resolvable video.
+            RemoteImage(url: reel.thumbnailURL)
+                .clipped()
+        }
+    }
+
+    private func setupPlayer() {
+        guard player == nil, let url = reel.videoURL else { return }
+        let p = AVPlayer(url: url)
+        p.actionAtItemEnd = .none
+        NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: p.currentItem,
+            queue: .main
+        ) { _ in
+            p.seek(to: .zero)
+            p.play()
+        }
+        player = p
+        if isCurrent {
+            p.play()
+        }
     }
 
     private var bottomMeta: some View {
@@ -85,10 +208,12 @@ private struct ReelCard: View {
                 .buttonStyle(.plain)
             }
 
-            Text(reel.caption)
-                .font(.subheadline)
-                .foregroundStyle(.white)
-                .lineLimit(2)
+            if !reel.caption.isEmpty {
+                Text(reel.caption)
+                    .font(.subheadline)
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+            }
 
             HStack(spacing: 6) {
                 Image(systemName: "music.note")
@@ -108,10 +233,13 @@ private struct ReelCard: View {
                 tint: reel.isLiked ? .red : .white,
                 count: reel.likesCount
             ) {
-                reel.isLiked.toggle()
-                reel.likesCount += reel.isLiked ? 1 : -1
+                Task { await runLike() }
             }
-            railButton(system: "bubble.right", tint: .white, count: reel.commentsCount) { }
+            railButton(
+                system: "bubble.right",
+                tint: .white,
+                count: reel.commentsCount
+            ) { showComments = true }
             railButton(system: "paperplane", tint: .white, count: reel.sharesCount) { }
             Button { } label: {
                 Image(systemName: "ellipsis").font(.title3).foregroundStyle(.white)
@@ -135,8 +263,25 @@ private struct ReelCard: View {
         }
         .buttonStyle(.plain)
     }
+
+    @MainActor
+    private func runLike() async {
+        guard let hash = reel.hash else { return }
+        reel.isLiked.toggle()
+        reel.likesCount += reel.isLiked ? 1 : -1
+        do {
+            _ = try await service.toggleLikeByHash(hash)
+        } catch {
+            // Revert local optimistic state — the cache revert is
+            // handled inside the service.
+            reel.isLiked.toggle()
+            reel.likesCount += reel.isLiked ? 1 : -1
+        }
+    }
 }
 
 #Preview {
-    ReelsView(reels: MockData.reels)
+    ReelsView()
+        .environmentObject(AppState())
+        .environmentObject(TribeService(state: AppState()))
 }
