@@ -21,6 +21,8 @@ struct OnboardingView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     header
+                    pairFromDesktopSection
+                    orDivider
                     hubSection
                     backupSection
                     if let errorMessage {
@@ -63,6 +65,44 @@ struct OnboardingView: View {
             Text("Bring your existing identity over from tribe-app or tribe-ios. Pick a backup file you've already exported — we never see your seed.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    private var pairFromDesktopSection: some View {
+        NavigationLink {
+            PairFromDesktopView()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "qrcode.viewfinder")
+                    .font(.title2)
+                    .foregroundStyle(.white)
+                    .frame(width: 36, height: 36)
+                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 10))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Scan QR from desktop")
+                        .font(.subheadline).fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                    Text("Fastest. Use tribe-app → Settings → Log in on mobile.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .background(Color(.secondarySystemBackground),
+                        in: RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var orDivider: some View {
+        HStack(spacing: 12) {
+            Rectangle().fill(Color.secondary.opacity(0.25)).frame(height: 1)
+            Text("OR")
+                .font(.caption2).fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            Rectangle().fill(Color.secondary.opacity(0.25)).frame(height: 1)
         }
     }
 

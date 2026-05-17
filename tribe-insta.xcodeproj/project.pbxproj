@@ -10,6 +10,7 @@
 		039411B5C56C0D201C315282 /* ERClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5138EC468DB58D727CE158D8 /* ERClient.swift */; };
 		0733CCC8D3BB521BF9359716 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8991DA3BD25129264587BC7 /* Keychain.swift */; };
 		0813468C3E10C389E07CAFF0 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F873556BF7C278BD30F1A68F /* Config.swift */; };
+		10B425EF8E6918879676C79A /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AC943FC14AAE4F6D7943F01 /* QRScannerView.swift */; };
 		1636AB28330C7134950ED056 /* Decoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = B85C3D80731BBCB76899A69D /* Decoding.swift */; };
 		1A22E507584C7651962696E6 /* NaClBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349B8482789F4DA1A8DB47AC /* NaClBox.swift */; };
 		215F6AF919A4D6A9F1E81DFF /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F961821373441611829F21A /* ConversationView.swift */; };
@@ -35,6 +36,7 @@
 		966A36E1ED72C0CB5B56D214 /* InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 850381B68D63406C2AAF19A1 /* InboxView.swift */; };
 		96FC8170AA83A1ECE22DA6EF /* Endpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366E13BF5ABBADAB8DD0D734 /* Endpoints.swift */; };
 		9A796E6986461AD098A8AA01 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A771F656A1073AF6D68CCC4 /* ContentView.swift */; };
+		9EB92E9DC75014E0500C6033 /* PairFromDesktopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C3EE49C442F93FCA0C5D110 /* PairFromDesktopView.swift */; };
 		A3C229F11C44D9D1728E7E97 /* DM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85CE8B6E0FA48A1C0F73D75E /* DM.swift */; };
 		AA9064A5BD445A1BA4B5A077 /* Channel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CB66D4019F4131F69FD8D5 /* Channel.swift */; };
 		AB2819B95C03E02595CB1BAF /* RemoteImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABB26542888FBA6F11C8DA89 /* RemoteImage.swift */; };
@@ -60,12 +62,14 @@
 		01BB8D54A58E9D7D32E5030E /* StoriesBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoriesBar.swift; sourceTree = "<group>"; };
 		01ED941587CB7875CE1F31D4 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		0A11EDA9969ED7F1C447D2B5 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		0AC943FC14AAE4F6D7943F01 /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
 		0F46117E408E4432DC1701A8 /* TribeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TribeService.swift; sourceTree = "<group>"; };
 		19EB8D84E2D97EE898BDDA85 /* InteractionCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionCache.swift; sourceTree = "<group>"; };
 		1A771F656A1073AF6D68CCC4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1DD0C90AC138518A4CB9D48A /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		2A23AA6166BA75C4602DC265 /* StoryViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryViewer.swift; sourceTree = "<group>"; };
 		2BF18C41C8AF4264D9D5D209 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
+		2C3EE49C442F93FCA0C5D110 /* PairFromDesktopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairFromDesktopView.swift; sourceTree = "<group>"; };
 		2F961821373441611829F21A /* ConversationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationView.swift; sourceTree = "<group>"; };
 		33C8C449589D7E5DAD3E7395 /* HubUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubUser.swift; sourceTree = "<group>"; };
 		349B8482789F4DA1A8DB47AC /* NaClBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaClBox.swift; sourceTree = "<group>"; };
@@ -92,7 +96,7 @@
 		ABB26542888FBA6F11C8DA89 /* RemoteImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteImage.swift; sourceTree = "<group>"; };
 		ACFAB5506BC9F74ABE67C06F /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
 		AEC57F82D41E29AFF80E8BE1 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
-		AED3A331ACFBF79948CC5780 /* tribe-insta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "tribe-insta.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AED3A331ACFBF79948CC5780 /* tribe-insta.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "tribe-insta.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B156025342DFB447C415AD55 /* BackupFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupFile.swift; sourceTree = "<group>"; };
 		B5BB8885336BB25A72208523 /* MessageSigner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSigner.swift; sourceTree = "<group>"; };
 		B85C3D80731BBCB76899A69D /* Decoding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Decoding.swift; sourceTree = "<group>"; };
@@ -173,6 +177,8 @@
 			isa = PBXGroup;
 			children = (
 				97C895D159D7EA18448292C2 /* OnboardingView.swift */,
+				2C3EE49C442F93FCA0C5D110 /* PairFromDesktopView.swift */,
+				0AC943FC14AAE4F6D7943F01 /* QRScannerView.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -385,6 +391,7 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					DBBFFA94EFD2FDDF103EACCF = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -456,9 +463,11 @@
 				1A22E507584C7651962696E6 /* NaClBox.swift in Sources */,
 				CE854ADDF2FFAC95DAB88BAA /* Notification.swift in Sources */,
 				9471EACBA29A99EA1065F7C0 /* OnboardingView.swift in Sources */,
+				9EB92E9DC75014E0500C6033 /* PairFromDesktopView.swift in Sources */,
 				8A0AD0595E2F7350E96D25FF /* PostCardView.swift in Sources */,
 				3CC8A49FF07F7ACDB4D5CC17 /* ProfileView.swift in Sources */,
 				C0289D1D4DB711FEA4CEC91C /* Publish.swift in Sources */,
+				10B425EF8E6918879676C79A /* QRScannerView.swift in Sources */,
 				BCA02F8A70BE55833EB0F1F9 /* ReelsView.swift in Sources */,
 				AB2819B95C03E02595CB1BAF /* RemoteImage.swift in Sources */,
 				E5D2F1FD4E37080776F86134 /* RootView.swift in Sources */,
@@ -542,8 +551,9 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VA496FA427;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Tribe uses the camera to scan a pairing QR from tribe-app on the desktop.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -632,8 +642,9 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VA496FA427;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Tribe uses the camera to scan a pairing QR from tribe-app on the desktop.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
