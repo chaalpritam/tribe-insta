@@ -92,7 +92,7 @@
 		ABB26542888FBA6F11C8DA89 /* RemoteImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteImage.swift; sourceTree = "<group>"; };
 		ACFAB5506BC9F74ABE67C06F /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
 		AEC57F82D41E29AFF80E8BE1 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
-		AED3A331ACFBF79948CC5780 /* tribe-insta.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "tribe-insta.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AED3A331ACFBF79948CC5780 /* tribe-insta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "tribe-insta.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B156025342DFB447C415AD55 /* BackupFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupFile.swift; sourceTree = "<group>"; };
 		B5BB8885336BB25A72208523 /* MessageSigner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSigner.swift; sourceTree = "<group>"; };
 		B85C3D80731BBCB76899A69D /* Decoding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Decoding.swift; sourceTree = "<group>"; };
@@ -385,7 +385,6 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					DBBFFA94EFD2FDDF103EACCF = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -543,8 +542,9 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = VA496FA427;
 				ENABLE_PREVIEWS = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -632,8 +632,9 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = VA496FA427;
 				ENABLE_PREVIEWS = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
