@@ -8,7 +8,8 @@ struct ContentView: View {
     var body: some View {
         switch state.phase {
         case .onboarding:
-            OnboardingView()
+            ConnectFlow()
+                .tint(Theme.primary)
         case .ready:
             RootView()
         }
