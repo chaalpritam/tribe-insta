@@ -70,6 +70,11 @@ struct PostCardView: View {
                 VStack(alignment: .leading, spacing: 1) {
                     HStack(spacing: 4) {
                         Text(post.author.username).font(.subheadline).fontWeight(.semibold)
+                        if post.author.isFollowing {
+                            Text("Following")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                         if post.author.isVerified {
                             Image(systemName: "checkmark.seal.fill")
                                 .font(.caption2)
