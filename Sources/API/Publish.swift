@@ -186,6 +186,23 @@ extension HubClient {
         return try await submit(envelope: envelope)
     }
 
+    /// Push a single profile field (USER_DATA_ADD type 7).
+    @discardableResult
+    func updateProfile(
+        field: String,
+        value: String,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> String {
+        let envelope = try MessageSigner.sign(
+            type: MessageType.userDataAdd.rawValue,
+            tid: tid,
+            body: ["field": field, "value": value],
+            appKey: appKey
+        )
+        return try await submit(envelope: envelope)
+    }
+
     @discardableResult
     func deleteTweet(
         hash: String,

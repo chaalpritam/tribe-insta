@@ -39,6 +39,14 @@ final class TribeService: ObservableObject {
         return page.tweets.compactMap(mapToPost)
     }
 
+    /// Cursor-paginated photo feed. Returns the next cursor when more
+    /// pages exist.
+    func feedPage(cursor: String? = nil, limit: Int = 20) async throws -> (posts: [Post], nextCursor: String?) {
+        let page = try await api.fetchFeedPage(cursor: cursor, limit: limit)
+        let posts = page.tweets.compactMap(mapToPost)
+        return (posts, page.cursor)
+    }
+
     // MARK: - Profile
 
     /// Returns the view-model `User` for the profile header plus the
@@ -52,6 +60,10 @@ final class TribeService: ObservableObject {
         let posts = (try await tweets).compactMap(mapToPost)
         var u = mapToUser(try await hubUser)
         u.postsCount = posts.count
+        if let me = state.myTID, me != tid,
+           let link = try? await state.er.link(followerTID: me, followingTID: tid) {
+            u.isFollowing = link.isFollowing
+        }
         return (u, posts)
     }
 
@@ -172,8 +184,48 @@ final class TribeService: ObservableObject {
 
     /// Paginated feed of reels (TWEET_ADD with post_kind='reel').
     func reels(limit: Int = 20) async throws -> [Reel] {
-        let tweets = try await api.fetchReels(limit: limit)
-        return tweets.compactMap(mapToReel)
+        let (items, _) = try await reelsPage(cursor: nil, limit: limit)
+        return items
+    }
+
+    func reelsPage(cursor: String? = nil, limit: Int = 20) async throws -> (reels: [Reel], nextCursor: String?) {
+        let page = try await api.fetchReelsPage(cursor: cursor, limit: limit)
+        return (page.reels.compactMap(mapToReel), page.cursor)
+    }
+
+    /// ER follow state for rendering Follow / Following / Pending.
+    func followStatus(targetTID: String) async throws -> ERLinkStatus? {
+        guard let me = state.myTID, me != targetTID else { return nil }
+        return try await state.er.link(followerTID: me, followingTID: targetTID)
+    }
+
+    func deletePost(_ post: Post) async throws {
+        let (appKey, tid, hash) = try requireWriteContext(post: post)
+        try await api.deleteTweet(hash: hash, as: appKey, tid: tid)
+        feedRevision &+= 1
+    }
+
+    func updateProfileField(_ field: String, value: String) async throws {
+        let (appKey, tid, _) = try requireSignedIn()
+        _ = try await api.updateProfile(field: field, value: value, as: appKey, tid: tid)
+        await state.refreshIdentityMetadata()
+    }
+
+    /// Upload avatar bytes and set `pfpUrl` to the returned media hash.
+    func updateAvatar(imageJPEG: Data) async throws {
+        let (appKey, tid, _) = try requireSignedIn()
+        let hash = try await api.uploadMedia(
+            data: imageJPEG,
+            contentType: "image/jpeg",
+            filename: "avatar.jpg"
+        )
+        _ = try await api.updateProfile(
+            field: "pfpUrl",
+            value: "media:\(hash)",
+            as: appKey,
+            tid: tid
+        )
+        await state.refreshIdentityMetadata()
     }
 
     /// Upload the video, then publish a TWEET_ADD with

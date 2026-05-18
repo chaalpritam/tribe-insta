@@ -206,11 +206,16 @@ public extension HubClient {
     /// Returns full Tweet rows since reels live in the same `messages`
     /// table as plain tweets and the projection is identical.
     func fetchReels(cursor: String? = nil, limit: Int = 20) async throws -> [Tweet] {
+        let page = try await fetchReelsPage(cursor: cursor, limit: limit)
+        return page.reels
+    }
+
+    func fetchReelsPage(cursor: String? = nil, limit: Int = 20) async throws -> (reels: [Tweet], cursor: String?) {
         struct R: Decodable { let reels: [Tweet]; let cursor: String? }
         var query: [String: String] = ["limit": String(limit)]
         if let cursor { query["cursor"] = cursor }
         let r: R = try await get("v1/reels", query: query)
-        return r.reels
+        return (r.reels, r.cursor)
     }
 
     // MARK: - Media URL resolver
