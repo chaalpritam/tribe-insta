@@ -51,9 +51,7 @@ struct RootView: View {
                 .tag(Tab.profile)
         }
         .tint(.primary)
-        .toolbarBackground(.visible, for: .tabBar)
-        .toolbarBackground(Color(.systemBackground), for: .tabBar)
-        .toolbarColorScheme(.none, for: .tabBar)
+        .modifier(StaticTabBarBehavior())
         .task { await state.refreshBadgeCounts() }
         .onChange(of: selection) { _, _ in
             Task { await state.refreshBadgeCounts() }
@@ -87,6 +85,20 @@ struct RootView: View {
             NavigationStack {
                 UserProfileView(tid: tid)
             }
+        }
+    }
+}
+
+/// iOS 26 ships a "Liquid Glass" tab bar that auto-minimizes to a single
+/// floating pill while the user scrolls. tribe-insta wants the classic
+/// IG-shaped tab bar where all five icons stay put, so pin the behavior
+/// to `.never` on supported OSes. Older OSes fall through unchanged.
+private struct StaticTabBarBehavior: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.tabBarMinimizeBehavior(.never)
+        } else {
+            content
         }
     }
 }
