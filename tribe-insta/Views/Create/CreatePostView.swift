@@ -76,9 +76,17 @@ struct CreatePostView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     if let errorMessage {
-                        Text(errorMessage)
-                            .font(.footnote).foregroundStyle(.red)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(errorMessage)
+                                .font(.footnote).foregroundStyle(.red)
+                            if !isPublishing {
+                                Button("Try again") {
+                                    Task { await share() }
+                                }
+                                .font(.footnote.weight(.semibold))
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
                 .padding(16)

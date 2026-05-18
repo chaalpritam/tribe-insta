@@ -14,6 +14,8 @@ struct UserProfileView: View {
     @State private var followListMode: FollowListView.Mode?
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var showBlockConfirm = false
+    @State private var showMuteConfirm = false
 
     var body: some View {
         ScrollView {
@@ -32,6 +34,44 @@ struct UserProfileView: View {
         .refreshable { await load() }
         .navigationTitle(user?.username ?? "Profile")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if tid != state.myTID {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        if state.restrictions.isBlocked(tid) {
+                            Button("Unblock") {
+                                state.restrictions.unblock(tid)
+                            }
+                        } else {
+                            Button("Mute posts", role: .destructive) {
+                                showMuteConfirm = true
+                            }
+                            Button("Block", role: .destructive) {
+                                showBlockConfirm = true
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                    }
+                }
+            }
+        }
+        .confirmationDialog("Block @\(user?.username ?? tid)?", isPresented: $showBlockConfirm) {
+            Button("Block", role: .destructive) {
+                state.restrictions.block(tid)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Their posts, stories, and reels will be hidden on this device.")
+        }
+        .confirmationDialog("Mute @\(user?.username ?? tid)?", isPresented: $showMuteConfirm) {
+            Button("Mute", role: .destructive) {
+                state.restrictions.mute(tid)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Their posts won't appear in your feed on this device. You can still visit their profile.")
+        }
         .navigationDestination(for: Post.self) { post in
             PostDetailView(post: post)
         }

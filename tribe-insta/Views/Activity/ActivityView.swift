@@ -106,6 +106,7 @@ struct ActivityView: View {
         do {
             notifications = try await service.notifications(tid: tid)
             state.markNotificationsRead(tid: tid)
+            await state.refreshBadgeCounts()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -118,7 +119,7 @@ struct NotificationRow: View {
 
     var body: some View {
         Group {
-            if let tid = notification.actor.tid, notification.kind != .follow {
+            if let tid = notification.actor.tid {
                 NavigationLink(value: tid) { rowContent }
                     .buttonStyle(.plain)
             } else {

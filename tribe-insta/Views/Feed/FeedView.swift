@@ -40,7 +40,7 @@ struct FeedView: View {
                         emptyState
                     } else {
                         ForEach(posts) { post in
-                            PostCardView(post: post)
+                            PostCardView(post: post, linksToDetail: true)
                                 .onAppear {
                                     if post.id == posts.last?.id {
                                         Task { await loadMore() }
@@ -61,6 +61,9 @@ struct FeedView: View {
             .navigationDestination(for: String.self) { tid in
                 UserProfileView(tid: tid)
             }
+            .navigationDestination(for: Post.self) { post in
+                PostDetailView(post: post)
+            }
             .navigationTitle("Tribe")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -73,13 +76,32 @@ struct FeedView: View {
                     NavigationLink {
                         ActivityView()
                     } label: {
-                        Image(systemName: "heart")
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: "heart")
+                            if state.unreadNotificationCount > 0 {
+                                Text(state.unreadNotificationCount > 9 ? "9+" : "\(state.unreadNotificationCount)")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .padding(3)
+                                    .background(Color.red, in: Circle())
+                                    .offset(x: 8, y: -8)
+                            }
+                        }
                     }
                 }
             }
         }
-        .task { await load() }
+        .task {
+            await load()
+            await state.refreshBadgeCounts()
+        }
         .onChange(of: service.feedRevision) { _, _ in
+            Task { await load() }
+        }
+        .onChange(of: state.restrictions.blockedTIDs) { _, _ in
+            Task { await load() }
+        }
+        .onChange(of: state.restrictions.mutedTIDs) { _, _ in
             Task { await load() }
         }
         .fullScreenCover(isPresented: $showStoryViewer) {

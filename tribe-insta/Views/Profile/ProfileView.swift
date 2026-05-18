@@ -16,8 +16,6 @@ struct ProfileView: View {
     @State private var showSettings: Bool = false
     @State private var showInbox: Bool = false
     @State private var showEditProfile: Bool = false
-    @State private var unreadDMCount: Int = 0
-
     enum ProfileTab: Hashable {
         case grid, reels, tagged
     }
@@ -77,8 +75,8 @@ struct ProfileView: View {
                     Button { showInbox = true } label: {
                         ZStack(alignment: .topTrailing) {
                             Image(systemName: "paperplane")
-                            if unreadDMCount > 0 {
-                                Text(unreadDMCount > 9 ? "9+" : "\(unreadDMCount)")
+                            if state.unreadDMCount > 0 {
+                                Text(state.unreadDMCount > 9 ? "9+" : "\(state.unreadDMCount)")
                                     .font(.system(size: 10, weight: .bold))
                                     .foregroundStyle(.white)
                                     .padding(4)
@@ -102,13 +100,13 @@ struct ProfileView: View {
         }
         .task {
             await load()
-            await refreshUnreadDMs()
+            await state.refreshBadgeCounts()
         }
         .onChange(of: service.feedRevision) { _, _ in
             Task { await load() }
         }
         .onChange(of: showInbox) { _, showing in
-            if !showing { Task { await refreshUnreadDMs() } }
+            if !showing { Task { await state.refreshBadgeCounts() } }
         }
     }
 
@@ -139,11 +137,6 @@ struct ProfileView: View {
         }
         .padding(.vertical, 40)
         .frame(maxWidth: .infinity)
-    }
-
-    @MainActor
-    private func refreshUnreadDMs() async {
-        unreadDMCount = (try? await service.unreadDMCount()) ?? 0
     }
 
     private var tabSelector: some View {

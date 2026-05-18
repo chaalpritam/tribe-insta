@@ -8,8 +8,11 @@ struct RootView: View {
         case feed, search, create, reels, activity, profile
     }
 
+    @EnvironmentObject private var state: AppState
     @State private var selection: Tab = .feed
     @State private var showCreate: Bool = false
+
+    private let badgeTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     var body: some View {
         TabView(selection: tabBinding) {
@@ -34,13 +37,22 @@ struct RootView: View {
                     Label("Activity", systemImage: selection == .activity ? "heart.fill" : "heart")
                 }
                 .tag(Tab.activity)
+                .badge(state.unreadNotificationCount > 0 ? state.unreadNotificationCount : 0)
 
             ProfileView()
                 .tabItem { Label("Profile", systemImage: "person.crop.circle") }
                 .tag(Tab.profile)
+                .badge(state.unreadDMCount > 0 ? state.unreadDMCount : 0)
         }
         .sheet(isPresented: $showCreate) {
             CreatePostView()
+        }
+        .task { await state.refreshBadgeCounts() }
+        .onChange(of: selection) { _, _ in
+            Task { await state.refreshBadgeCounts() }
+        }
+        .onReceive(badgeTimer) { _ in
+            Task { await state.refreshBadgeCounts() }
         }
     }
 

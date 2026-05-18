@@ -8,6 +8,7 @@ struct SettingsView: View {
 
     @State private var hubURLText: String = ""
     @State private var erURLText: String = ""
+    @State private var showExportBackup = false
 
     var body: some View {
         NavigationStack {
@@ -46,6 +47,19 @@ struct SettingsView: View {
                     } label: {
                         Label("Saved posts", systemImage: "bookmark")
                     }
+                    NavigationLink {
+                        BlockedUsersView()
+                    } label: {
+                        Label("Blocked accounts", systemImage: "hand.raised")
+                    }
+                }
+
+                Section("Account") {
+                    Button {
+                        showExportBackup = true
+                    } label: {
+                        Label("Export backup", systemImage: "square.and.arrow.up")
+                    }
                 }
 
                 Section("Identity") {
@@ -67,7 +81,7 @@ struct SettingsView: View {
                         dismiss()
                     }
                 } footer: {
-                    Text("Sign out wipes the app key and TID from this device. Your backup file is the only way back in — keep it somewhere safe.")
+                    Text("Sign out wipes the app key and TID from this device. Export a backup first. Follows and unfollows still require tribe-app (Solana custody key).")
                         .font(.caption2)
                 }
             }
@@ -86,6 +100,9 @@ struct SettingsView: View {
         .onAppear {
             hubURLText = state.hubBaseURL.absoluteString
             erURLText = state.erBaseURL.absoluteString
+        }
+        .sheet(isPresented: $showExportBackup) {
+            ExportBackupSheet()
         }
     }
 

@@ -2,6 +2,8 @@ import SwiftUI
 
 struct PostCardView: View {
     @State var post: Post
+    /// When true, a single tap on the image opens post detail (feed).
+    var linksToDetail: Bool = false
     @State private var currentMediaIndex: Int = 0
     @State private var bumpHeart: Bool = false
     @State private var showComments: Bool = false
@@ -134,6 +136,14 @@ struct PostCardView: View {
             }
 
             heartBurst
+
+            if linksToDetail {
+                NavigationLink(value: post) {
+                    Color.clear
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
         }
         .overlay(alignment: .bottom) {
             if post.imageURLs.count > 1 {
