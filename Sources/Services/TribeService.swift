@@ -36,15 +36,27 @@ final class TribeService: ObservableObject {
     /// filter and we stop downloading text-only rows.
     func feed(limit: Int = 30) async throws -> [Post] {
         let page = try await api.fetchFeedPage(limit: limit)
-        return page.tweets.compactMap(mapToPost)
+        var posts = page.tweets.compactMap(mapToPost)
+        posts = await enrichFollowing(on: posts)
+        return posts
     }
 
     /// Cursor-paginated photo feed. Returns the next cursor when more
     /// pages exist.
     func feedPage(cursor: String? = nil, limit: Int = 20) async throws -> (posts: [Post], nextCursor: String?) {
         let page = try await api.fetchFeedPage(cursor: cursor, limit: limit)
-        let posts = page.tweets.compactMap(mapToPost)
+        var posts = page.tweets.compactMap(mapToPost)
+        posts = await enrichFollowing(on: posts)
         return (posts, page.cursor)
+    }
+
+    /// Load a single photo post by protocol hash (post detail, deep links).
+    func post(hash: String) async throws -> Post? {
+        let tweet = try await api.fetchTweet(hash: hash)
+        guard var post = mapToPost(tweet) else { return nil }
+        let enriched = await enrichFollowing(on: [post])
+        post = enriched[0]
+        return post
     }
 
     // MARK: - Profile
@@ -54,24 +66,58 @@ final class TribeService: ObservableObject {
     /// `posts_count` field on /v1/user — for now we count what we
     /// fetched. Phase 3's `post_kind` migration would let the hub
     /// surface the photo count directly.
-    func profile(tid: String) async throws -> (user: User, posts: [Post]) {
+    func profile(tid: String) async throws -> (user: User, posts: [Post], reels: [Reel]) {
         async let hubUser = api.fetchUser(tid)
         async let tweets = api.fetchTweets(tid: tid)
-        let posts = (try await tweets).compactMap(mapToPost)
+        let allTweets = try await tweets
+        var posts = allTweets.compactMap(mapToPost)
+        posts = await enrichFollowing(on: posts)
+        let reels = allTweets.compactMap(mapToReel)
         var u = mapToUser(try await hubUser)
         u.postsCount = posts.count
         if let me = state.myTID, me != tid,
            let link = try? await state.er.link(followerTID: me, followingTID: tid) {
             u.isFollowing = link.isFollowing
         }
-        return (u, posts)
+        return (u, posts, reels)
+    }
+
+    func followers(of tid: String) async throws -> [User] {
+        try await api.fetchFollowers(tid).map(mapToUser)
+    }
+
+    func following(of tid: String) async throws -> [User] {
+        try await api.fetchFollowing(tid).map(mapToUser)
+    }
+
+    /// Bookmarked photo posts for the signed-in user.
+    func savedPosts() async throws -> [Post] {
+        let (_, tid, _) = try requireSignedIn()
+        let tweets = try await api.fetchBookmarkedTweets(tid: tid)
+        return tweets.compactMap(mapToPost)
     }
 
     // MARK: - Search
 
     func searchUsers(_ query: String) async throws -> [User] {
         let hubUsers = try await api.searchUsers(query)
-        return hubUsers.map(mapToUser)
+        var users = hubUsers.map(mapToUser)
+        users = await enrichFollowing(users: users)
+        return users
+    }
+
+    func searchPosts(_ query: String) async throws -> [Post] {
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return [] }
+        let q = trimmed.hasPrefix("#") ? String(trimmed.dropFirst()) : trimmed
+        var posts = try await api.searchTweets(q).compactMap(mapToPost)
+        posts = await enrichFollowing(on: posts)
+        return posts
+    }
+
+    /// Sum of unread DM counts across conversations.
+    func unreadDMCount() async throws -> Int {
+        try await conversations().reduce(0) { $0 + $1.unreadCount }
     }
 
     // MARK: - Stories
@@ -188,9 +234,63 @@ final class TribeService: ObservableObject {
         return items
     }
 
-    func reelsPage(cursor: String? = nil, limit: Int = 20) async throws -> (reels: [Reel], nextCursor: String?) {
-        let page = try await api.fetchReelsPage(cursor: cursor, limit: limit)
+    func reelsPage(
+        cursor: String? = nil,
+        limit: Int = 20,
+        sort: HubClient.ReelsSort = .engagement
+    ) async throws -> (reels: [Reel], nextCursor: String?) {
+        let page = try await api.fetchReelsPage(cursor: cursor, limit: limit, sort: sort)
         return (page.reels.compactMap(mapToReel), page.cursor)
+    }
+
+    /// Batch ER lookups so feed/search cards can show Following state.
+    func enrichFollowing(users: [User]) async -> [User] {
+        guard let me = state.myTID else { return users }
+        var copy = users
+        await withTaskGroup(of: (Int, Bool).self) { group in
+            for (idx, user) in copy.enumerated() {
+                guard let tid = user.tid, tid != me else { continue }
+                group.addTask { [er = state.er] in
+                    let following = (try? await er.link(
+                        followerTID: me,
+                        followingTID: tid
+                    ))?.isFollowing == true
+                    return (idx, following)
+                }
+            }
+            for await (idx, following) in group {
+                copy[idx].isFollowing = following
+            }
+        }
+        return copy
+    }
+
+    func enrichFollowing(on posts: [Post]) async -> [Post] {
+        guard state.myTID != nil else { return posts }
+        var copy = posts
+        let authorTIDs = Set(copy.compactMap(\.author.tid))
+        var followingByTID: [String: Bool] = [:]
+        await withTaskGroup(of: (String, Bool).self) { group in
+            guard let me = state.myTID else { return }
+            for tid in authorTIDs where tid != me {
+                group.addTask { [er = state.er] in
+                    let following = (try? await er.link(
+                        followerTID: me,
+                        followingTID: tid
+                    ))?.isFollowing == true
+                    return (tid, following)
+                }
+            }
+            for await (tid, following) in group {
+                followingByTID[tid] = following
+            }
+        }
+        for i in copy.indices {
+            if let tid = copy[i].author.tid, let following = followingByTID[tid] {
+                copy[i].author.isFollowing = following
+            }
+        }
+        return copy
     }
 
     /// ER follow state for rendering Follow / Following / Pending.

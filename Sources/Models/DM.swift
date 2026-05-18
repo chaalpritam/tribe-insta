@@ -29,6 +29,30 @@ public struct DMConversation: Decodable, Identifiable, Hashable {
         self.unreadCount = HubDecode.intCount(c, forKey: .unreadCount)
         self.lastMessageAt = try HubDecode.dateIfPresent(c, forKey: .lastMessageAt)
     }
+
+    public init(
+        id: String,
+        peerTid: String,
+        peerUsername: String?,
+        messageCount: Int = 0,
+        unreadCount: Int = 0,
+        lastMessageAt: Date? = nil
+    ) {
+        self.id = id
+        self.peerTid = peerTid
+        self.peerUsername = peerUsername
+        self.messageCount = messageCount
+        self.unreadCount = unreadCount
+        self.lastMessageAt = lastMessageAt
+    }
+}
+
+/// Hub 1:1 conversation id: `min(tid):max(tid)` as decimal strings.
+public func dmConversationId(myTID: String, peerTID: String) -> String? {
+    guard let a = Int64(myTID), let b = Int64(peerTID) else { return nil }
+    let lo = min(a, b)
+    let hi = max(a, b)
+    return "\(lo):\(hi)"
 }
 
 /// One row from `/v1/dm/messages/:id`. Ciphertext + nonce decrypt

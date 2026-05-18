@@ -210,9 +210,21 @@ public extension HubClient {
         return page.reels
     }
 
-    func fetchReelsPage(cursor: String? = nil, limit: Int = 20) async throws -> (reels: [Tweet], cursor: String?) {
+    enum ReelsSort: String {
+        case recent
+        case engagement
+    }
+
+    func fetchReelsPage(
+        cursor: String? = nil,
+        limit: Int = 20,
+        sort: ReelsSort = .recent
+    ) async throws -> (reels: [Tweet], cursor: String?) {
         struct R: Decodable { let reels: [Tweet]; let cursor: String? }
-        var query: [String: String] = ["limit": String(limit)]
+        var query: [String: String] = [
+            "limit": String(limit),
+            "sort": sort.rawValue,
+        ]
         if let cursor { query["cursor"] = cursor }
         let r: R = try await get("v1/reels", query: query)
         return (r.reels, r.cursor)
