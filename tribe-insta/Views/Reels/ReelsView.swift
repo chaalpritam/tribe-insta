@@ -22,7 +22,7 @@ struct ReelsView: View {
             content(size: proxy.size)
         }
         .background(Color.black)
-        .ignoresSafeArea()
+        .ignoresSafeArea(edges: [.top, .horizontal])
         .overlay(alignment: .top) {
             Text("Reels")
                 .font(.title3).fontWeight(.semibold)

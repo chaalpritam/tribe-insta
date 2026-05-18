@@ -14,6 +14,7 @@ struct ProfileTabIcon: View {
             } else {
                 Image(systemName: isSelected ? "person.crop.circle.fill" : "person.crop.circle")
                     .font(.system(size: 26))
+                    .foregroundStyle(isSelected ? Color.primary : Color.secondary)
             }
             Circle()
                 .strokeBorder(isSelected ? Color.primary : Color.clear, lineWidth: 2)
