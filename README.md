@@ -1,90 +1,64 @@
 # tribe-insta
 
-Native SwiftUI iOS client for the [TribeEco](https://github.com/chaalpritam/TribeEco) decentralized social protocol — Instagram-shaped surface (photo grid, stories, reels, profile-first navigation) sitting on the same hub + envelope format as the Twitter-shaped [`tribe-ios`](https://github.com/chaalpritam/tribe-ios) client.
+Native SwiftUI iOS client for the [TribeEco](https://github.com/chaalpritam/TribeEco) decentralized social protocol — Instagram-shaped surface (photo grid, stories, reels, profile-first navigation) on the same hub + envelope format as [`tribe-ios`](https://github.com/chaalpritam/tribe-ios).
 
 ## Status
 
-**Scaffolding stage.** UI shell is complete and runs against mock Picsum data. Protocol integration is being landed in phases — see [`PLAN.md`](PLAN.md) for the roadmap and cross-repo dependency table.
+**Hub-backed beta.** Connect with the same flows as tribe-app (QR, seed phrase, create/import app key, backup restore), then read and write against a running `tribe-hub` + ER sequencer.
 
-| Phase | Scope | State |
-|---|---|---|
-| 0 | Repo + submodule + tooling | in progress |
-| 1 | Hub-backed reads (feed, profile, activity, search) + paste-backup onboarding | pending |
-| 2 | Writes: like, save, comment, create-post, follow | pending |
-| 3 | Stories + Reels (requires tribe-hub + tribe-sdk + tribe-app changes) | pending |
-| 4 | Extract `TribeCore` Swift package shared with tribe-ios | pending |
+| Area | Status |
+|------|--------|
+| Onboarding | ConnectFlow — hub URL, QR, seed, create/import, backup restore |
+| Feed | Photo posts, stories bar, like/save/comment, pagination, post detail |
+| Create | Post / story / reel — library + in-app camera, video compression |
+| Reels | Engagement-ranked feed, comments, share, prefetch |
+| Search | Explore grid, user search, hashtag/post search |
+| Profiles | Self + other users, follow lists, grid/reels tabs, edit profile |
+| Activity | Notifications, follow-back via tribe-app explainer |
+| DMs | Inbox, decrypt, compose new thread |
+| Settings | Hub/ER URLs, export backup, saved posts, block/mute (device-local) |
 
-## What works today
+**Not yet (needs protocol / infra):** tagged-post index, hub-wide block/mute, ER follow writes from mobile (custody key), push notifications, Instagram Live.
 
-iPhone-only, portrait-only, mock data only:
-
-- **Feed** — stories bar + photo cards with carousel, double-tap to like, save toggle
-- **Search** — Instagram-style explore grid with tall video cells, user search filter
-- **Create** — post composer scaffold (no real upload yet)
-- **Reels** — vertical-snap pager with action rail
-- **Activity** — grouped notifications (Today / This week / Earlier)
-- **Profile** — grid + reels + tagged tabs with highlights row
-
-All data comes from `tribe-insta/Mock/MockData.swift`. The protocol wire-up replaces this in Phase 1.
+See [`PLAN.md`](PLAN.md) for cross-repo stories/reels history and `TribeCore` extraction.
 
 ## Requirements
 
 - Xcode 16+ (iOS 26 SDK)
-- Optional: [xcodegen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`) — only needed if you edit `Project.yml`
-
-Phase 1 adds:
-
-- A running `tribe-hub` (defaults to `http://127.0.0.1:4000` — see [`tribe-hub`](https://github.com/chaalpritam/tribe-hub))
-- An identity created via `tribe-app` and exported to a backup file
+- [xcodegen](https://github.com/yonaskolb/XcodeGen) — run after editing `Project.yml`
+- Stack: `brew install tribe && tribe start` (hub `:4000`, ER `:3003`)
 
 ## Running
 
 ```sh
 cd tribe-insta
+xcodegen generate   # if you changed Project.yml or added Swift files
 open tribe-insta.xcodeproj
-# In Xcode: pick an iPhone simulator and ⌘R
+# Pick an iPhone simulator and ⌘R
 ```
 
-The `.xcodeproj` is committed so a fresh clone opens directly in Xcode without needing xcodegen installed. When you add Swift files, Xcode picks them up via the source group's directory reference. When you change build settings, edit `Project.yml` and run `xcodegen generate`.
+On a physical device, set the hub URL to your Mac's LAN IP (`tribe share`) in onboarding or Settings.
+
+## Tester quick path
+
+1. `tribe start` on a Mac
+2. Create identity on `tribe-app` (or in-app create/import)
+3. Optional: `tribe-app link http://<lan-ip>:4000` on desktop
+4. Open tribe-insta → configure hub → sign in → post a photo
 
 ## Layout
 
 ```
-tribe-insta/                          Xcode app target sources
-  tribe_instaApp.swift                @main entry
-  ContentView.swift                   wraps RootView
-  Assets.xcassets/                    AccentColor + AppIcon stubs
-  Mock/
-    MockData.swift                    Picsum-backed sample feed (Phase 1 deletes this)
-  Models/
-    Models.swift                      User, Story, Comment, Post, Reel, AppNotification
-  Views/
-    Root/        RootView (TabView shell)
-    Feed/        FeedView + PostCardView + StoriesBar
-    Search/      SearchView (explore grid + user results)
-    Create/      CreatePostView
-    Reels/       ReelsView (vertical pager)
-    Activity/    ActivityView + NotificationRow
-    Profile/     ProfileView (header + highlights + grid)
-    Components/  RemoteImage, AvatarView, StoryAvatarView, Formatters
+tribe-insta/          SwiftUI views (tabs, onboarding, components)
+Sources/              Protocol layer (Crypto, API, TribeService, AppState)
+  Crypto/             Blake3, AppKey, BackupFile, NaCl box, BIP39, …
+  API/                HubClient, ERClient, Publish, Endpoints
+  Services/           TribeService (hub → IG view models)
+  State/              AppState, InteractionCache, UserRestrictionsStore
 ```
 
-Phase 1 adds `Sources/Crypto/`, `Sources/API/`, `Sources/State/`, `Sources/Services/`, ported from tribe-ios.
+`Mock/MockData.swift` remains for SwiftUI previews only; the app does not use it at runtime when signed in.
 
-## Where this fits
+## Submodule
 
-`tribe-insta` is a submodule of the [TribeEco](https://github.com/chaalpritam/TribeEco) monorepo. Clone the monorepo with `--recurse-submodules` to get everything.
-
-| Repo | Role |
-|---|---|
-| [tribe-protocol](https://github.com/chaalpritam/tribe-protocol) | Solana programs — identity, app keys, social graph, registries |
-| [tribe-sdk](https://github.com/chaalpritam/tribe-sdk) | TypeScript SDK shared by web clients |
-| [tribe-hub](https://github.com/chaalpritam/tribe-hub) | Decentralized hub — message storage, indexing, gossip |
-| [tribe-er-server](https://github.com/chaalpritam/tribe-er-server) | Ephemeral Rollup sequencer — instant follows |
-| [tribe-app](https://github.com/chaalpritam/tribe-demo-app) | Next.js reference client (Twitter-shaped) |
-| [tribe-ios](https://github.com/chaalpritam/tribe-ios) | Native iOS client (Twitter-shaped) |
-| **tribe-insta** | Native iOS client (Instagram-shaped) — this repo |
-
-## What's next
-
-See [`PLAN.md`](PLAN.md). The next concrete step is Phase 1: port the crypto + HubClient layer from tribe-ios, replace `MockData` with a `TribeService` that fetches `/v1/feed` filtered to tweets with image embeds, and wire each tab to the real hub.
+Part of the [TribeEco](https://github.com/chaalpritam/TribeEco) monorepo. Clone with `--recurse-submodules`.
