@@ -14,7 +14,6 @@ struct ProfileView: View {
     @State private var selectedTab: ProfileTab = .grid
     @State private var followListMode: FollowListView.Mode?
     @State private var showSettings: Bool = false
-    @State private var showInbox: Bool = false
     @State private var showEditProfile: Bool = false
     enum ProfileTab: Hashable {
         case grid, reels, tagged
@@ -71,29 +70,13 @@ struct ProfileView: View {
                         Image(systemName: "chevron.down").font(.caption2)
                     }
                 }
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button { showInbox = true } label: {
-                        ZStack(alignment: .topTrailing) {
-                            Image(systemName: "paperplane")
-                            if state.unreadDMCount > 0 {
-                                Text(state.unreadDMCount > 9 ? "9+" : "\(state.unreadDMCount)")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .padding(4)
-                                    .background(Color.red, in: Circle())
-                                    .offset(x: 8, y: -8)
-                            }
-                        }
-                    }
-                    Button { showSettings = true } label: { Image(systemName: "gearshape") }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showSettings = true } label: { Image(systemName: "line.3.horizontal") }
                 }
             }
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
-        }
-        .sheet(isPresented: $showInbox) {
-            InboxView()
         }
         .sheet(isPresented: $showEditProfile) {
             EditProfileView()
@@ -104,9 +87,6 @@ struct ProfileView: View {
         }
         .onChange(of: service.feedRevision) { _, _ in
             Task { await load() }
-        }
-        .onChange(of: showInbox) { _, showing in
-            if !showing { Task { await state.refreshBadgeCounts() } }
         }
     }
 
@@ -172,6 +152,7 @@ struct ProfileView: View {
         do {
             let (u, p, r) = try await service.profile(tid: tid)
             user = u
+            state.myAvatarURL = u.avatarURL
             posts = p
             reels = r
         } catch {

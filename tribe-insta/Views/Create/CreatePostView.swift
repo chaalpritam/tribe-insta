@@ -17,7 +17,12 @@ struct CreatePostView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var service: TribeService
 
-    @State private var mode: Mode = .post
+    private let initialMode: Mode
+    private let initialPhoto: UIImage?
+    private let initialVideoURL: URL?
+    private let onPublished: (() -> Void)?
+
+    @State private var mode: Mode
     @State private var pickerItems: [PhotosPickerItem] = []
     @State private var photoLoadeds: [LoadedImage] = []
     @State private var loadedVideo: LoadedVideo? = nil
@@ -38,6 +43,19 @@ struct CreatePostView: View {
         case post = "Post"
         case story = "Story"
         case reel = "Reel"
+    }
+
+    init(
+        initialMode: Mode = .post,
+        initialPhoto: UIImage? = nil,
+        initialVideoURL: URL? = nil,
+        onPublished: (() -> Void)? = nil
+    ) {
+        self.initialMode = initialMode
+        self.initialPhoto = initialPhoto
+        self.initialVideoURL = initialVideoURL
+        self.onPublished = onPublished
+        _mode = State(initialValue: initialMode)
     }
 
     struct LoadedImage: Identifiable {
@@ -115,6 +133,7 @@ struct CreatePostView: View {
         .onChange(of: pickerItems) { _, newValue in
             Task { await loadPickerItems(newValue) }
         }
+        .task { await applyInitialMediaIfNeeded() }
         .fullScreenCover(isPresented: $showCamera) {
             MediaCapturePicker(
                 kind: mode == .reel ? .video : .photo,
@@ -541,9 +560,23 @@ struct CreatePostView: View {
                     location: nil
                 )
             }
+            onPublished?()
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func applyInitialMediaIfNeeded() async {
+        if let photo = initialPhoto, let jpeg = Self.encodeJPEG(photo) {
+            photoLoadeds = [LoadedImage(preview: photo, jpegData: jpeg)]
+            loadedVideo = nil
+            return
+        }
+        if let url = initialVideoURL {
+            await ingestCapturedVideo(url)
+            mode = .reel
         }
     }
 

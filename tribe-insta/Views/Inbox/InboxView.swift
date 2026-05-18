@@ -6,6 +6,8 @@ import SwiftUI
 /// tribe-insta's DM surface today is replying to a story, which lands
 /// the conversation in the list on the next refresh.
 struct InboxView: View {
+    var embeddedInTab: Bool = false
+
     @EnvironmentObject private var state: AppState
     @EnvironmentObject private var service: TribeService
     @Environment(\.dismiss) private var dismiss
@@ -28,8 +30,10 @@ struct InboxView: View {
                             Image(systemName: "square.and.pencil")
                         }
                     }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Done") { dismiss() }
+                    if !embeddedInTab {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") { dismiss() }
+                        }
                     }
                 }
                 .sheet(isPresented: $showNewMessage) {

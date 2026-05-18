@@ -140,7 +140,7 @@ struct FeedView: View {
                         .font(.title2).foregroundStyle(.secondary)
                     Text("No photo posts yet")
                         .font(.headline)
-                    Text("Posts with images from your hub will show up here. Create one from the + tab.")
+                    Text("Posts with images from your hub will show up here. Swipe left on Home to capture one.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)

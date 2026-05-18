@@ -15,7 +15,6 @@ struct ReelsView: View {
     @State private var isLoadingMore = false
     @State private var reelsCursor: String?
     @State private var errorMessage: String?
-    @State private var showCreate = false
     @State private var playbackAllowed = true
 
     var body: some View {
@@ -25,26 +24,16 @@ struct ReelsView: View {
         .background(Color.black)
         .ignoresSafeArea()
         .overlay(alignment: .top) {
-            HStack {
-                Text("Reels")
-                    .font(.title3).fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                Spacer()
-                Button { showCreate = true } label: {
-                    Image(systemName: "camera")
-                        .font(.title3)
-                        .foregroundStyle(.white)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
+            Text("Reels")
+                .font(.title3).fontWeight(.semibold)
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
         }
         .task { await load(refresh: true) }
         .onChange(of: service.feedRevision) { _, _ in
             Task { await load(refresh: true) }
-        }
-        .sheet(isPresented: $showCreate) {
-            CreatePostView()
         }
         .onChange(of: scenePhase) { _, phase in
             playbackAllowed = phase == .active

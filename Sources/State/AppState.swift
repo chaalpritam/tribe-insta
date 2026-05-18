@@ -64,6 +64,7 @@ final class AppState: ObservableObject {
     @Published private(set) var dmKey: DMKey?
 
     @Published var myUsername: String?
+    @Published var myAvatarURL: URL?
     @Published var walletAddress: String?
 
     private(set) var api: HubClient
@@ -161,6 +162,7 @@ final class AppState: ObservableObject {
         dmKey = nil
         myTID = nil
         myUsername = nil
+        myAvatarURL = nil
         walletAddress = nil
         interactions.clear()
     }
@@ -194,6 +196,7 @@ final class AppState: ObservableObject {
         do {
             let user = try await api.fetchUser(tid)
             self.myUsername = user.username
+            self.myAvatarURL = user.profile?.pfpUrl.flatMap { api.resolveMediaURL($0) }
             self.walletAddress = user.custodyAddress
         } catch {
             // Non-fatal: hub may be unreachable on first launch, profile
