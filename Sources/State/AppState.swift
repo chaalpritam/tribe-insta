@@ -122,6 +122,18 @@ final class AppState: ObservableObject {
 
     // MARK: - Onboarding handoff
 
+    /// Persist identity, register DM key, refresh profile metadata.
+    func completeConnect(tid: String, appKey: AppKey, walletAddress: String? = nil) async throws {
+        try adopt(tid: tid, appKey: appKey)
+        if let walletAddress {
+            self.walletAddress = walletAddress
+        }
+        _ = try await ensureDMKey()
+        await refreshIdentityMetadata(tid: tid)
+        await interactions.refresh()
+        recomputePhase()
+    }
+
     /// Persist a freshly imported identity. Called from the onboarding
     /// views once the user confirms their TID + app key.
     func adopt(tid: String, appKey: AppKey) throws {
