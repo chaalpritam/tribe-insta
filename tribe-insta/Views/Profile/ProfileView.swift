@@ -13,6 +13,7 @@ struct ProfileView: View {
     @State private var selectedTab: ProfileTab = .grid
     @State private var showSettings: Bool = false
     @State private var showInbox: Bool = false
+    @State private var showEditProfile: Bool = false
 
     enum ProfileTab: Hashable {
         case grid, reels, tagged
@@ -23,7 +24,7 @@ struct ProfileView: View {
             ScrollView {
                 LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
                     if let user {
-                        ProfileHeader(user: user)
+                        ProfileHeader(user: user, showEditProfile: $showEditProfile)
                     } else if isLoading {
                         ProgressView().padding(40)
                     } else if let errorMessage {
@@ -40,8 +41,6 @@ struct ProfileView: View {
                         }
                         .padding(40)
                     }
-
-                    HighlightsRow()
 
                     Section(header: tabSelector) {
                         ProfilePostsGrid(posts: posts)
@@ -69,6 +68,9 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showInbox) {
             InboxView()
+        }
+        .sheet(isPresented: $showEditProfile) {
+            EditProfileView()
         }
         .task { await load() }
         .onChange(of: service.feedRevision) { _, _ in
@@ -119,6 +121,7 @@ struct ProfileView: View {
 
 private struct ProfileHeader: View {
     let user: User
+    @Binding var showEditProfile: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -143,16 +146,29 @@ private struct ProfileHeader: View {
             }
 
             HStack(spacing: 8) {
-                actionButton(title: "Edit profile")
-                actionButton(title: "Share profile")
-                Button { } label: {
-                    Image(systemName: "person.badge.plus")
-                        .font(.subheadline)
-                        .frame(width: 32, height: 32)
+                Button {
+                    showEditProfile = true
+                } label: {
+                    Text("Edit profile")
+                        .font(.subheadline).fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 7)
                         .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 8))
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(.primary)
+                if let tid = user.tid {
+                    ShareLink(
+                        item: "Tribe profile @\(user.username) (TID \(tid))",
+                        subject: Text(user.displayName)
+                    ) {
+                        Text("Share profile")
+                            .font(.subheadline).fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 7)
+                            .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
         .padding(.horizontal, 16)
@@ -175,52 +191,9 @@ private struct ProfileHeader: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func actionButton(title: String) -> some View {
-        Button { } label: {
-            Text(title)
-                .font(.subheadline).fontWeight(.semibold)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 7)
-                .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 8))
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(.primary)
-    }
 }
 
-/// Phase 1 keeps the highlights as placeholder rings — there's no
-/// protocol concept for highlights yet, and they're optional UI
-/// chrome rather than functional. Hidden when there's nothing to
-/// link them to could be cleaner; left visible so the layout stays
-/// consistent with the mock for now.
-private struct HighlightsRow: View {
-    private let titles = ["New", "Travel", "Code", "Food", "2026"]
-    private let seeds = ["h1", "h2", "h3", "h4", "h5"]
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 16) {
-                ForEach(Array(titles.enumerated()), id: \.offset) { idx, title in
-                    VStack(spacing: 6) {
-                        ZStack {
-                            Circle()
-                                .strokeBorder(Color(.separator).opacity(0.6), lineWidth: 1)
-                                .frame(width: 64, height: 64)
-                            RemoteImage(url: MockData.picsum(seeds[idx], 200))
-                                .frame(width: 58, height: 58)
-                                .clipShape(Circle())
-                        }
-                        Text(title).font(.caption2)
-                    }
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-        }
-    }
-}
-
-private struct ProfilePostsGrid: View {
+struct ProfilePostsGrid: View {
     let posts: [Post]
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 3)
