@@ -40,6 +40,14 @@ struct SettingsView: View {
                         .font(.caption2).foregroundStyle(.secondary)
                 }
 
+                Section("Content") {
+                    NavigationLink {
+                        SavedPostsView()
+                    } label: {
+                        Label("Saved posts", systemImage: "bookmark")
+                    }
+                }
+
                 Section("Identity") {
                     LabeledContent("TID", value: state.myTID ?? "—")
                     LabeledContent("Username", value: state.myUsername ?? "—")

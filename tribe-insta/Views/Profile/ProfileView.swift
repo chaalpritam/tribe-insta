@@ -8,12 +8,15 @@ struct ProfileView: View {
 
     @State private var user: User?
     @State private var posts: [Post] = []
+    @State private var reels: [Reel] = []
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
     @State private var selectedTab: ProfileTab = .grid
+    @State private var followListMode: FollowListView.Mode?
     @State private var showSettings: Bool = false
     @State private var showInbox: Bool = false
     @State private var showEditProfile: Bool = false
+    @State private var unreadDMCount: Int = 0
 
     enum ProfileTab: Hashable {
         case grid, reels, tagged
@@ -24,7 +27,12 @@ struct ProfileView: View {
             ScrollView {
                 LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
                     if let user {
-                        ProfileHeader(user: user, showEditProfile: $showEditProfile)
+                        ProfileHeader(
+                            user: user,
+                            showEditProfile: $showEditProfile,
+                            onFollowers: { followListMode = .followers },
+                            onFollowing: { followListMode = .following }
+                        )
                     } else if isLoading {
                         ProgressView().padding(40)
                     } else if let errorMessage {
@@ -43,8 +51,16 @@ struct ProfileView: View {
                     }
 
                     Section(header: tabSelector) {
-                        ProfilePostsGrid(posts: posts)
+                        tabContent
                     }
+                }
+            }
+            .navigationDestination(for: Post.self) { post in
+                PostDetailView(post: post)
+            }
+            .navigationDestination(item: $followListMode) { mode in
+                if let tid = state.myTID {
+                    FollowListView(tid: tid, mode: mode)
                 }
             }
             .refreshable { await load() }
@@ -58,7 +74,19 @@ struct ProfileView: View {
                     }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button { showInbox = true } label: { Image(systemName: "paperplane") }
+                    Button { showInbox = true } label: {
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: "paperplane")
+                            if unreadDMCount > 0 {
+                                Text(unreadDMCount > 9 ? "9+" : "\(unreadDMCount)")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .padding(4)
+                                    .background(Color.red, in: Circle())
+                                    .offset(x: 8, y: -8)
+                            }
+                        }
+                    }
                     Button { showSettings = true } label: { Image(systemName: "gearshape") }
                 }
             }
@@ -72,10 +100,50 @@ struct ProfileView: View {
         .sheet(isPresented: $showEditProfile) {
             EditProfileView()
         }
-        .task { await load() }
+        .task {
+            await load()
+            await refreshUnreadDMs()
+        }
         .onChange(of: service.feedRevision) { _, _ in
             Task { await load() }
         }
+        .onChange(of: showInbox) { _, showing in
+            if !showing { Task { await refreshUnreadDMs() } }
+        }
+    }
+
+    @ViewBuilder
+    private var tabContent: some View {
+        switch selectedTab {
+        case .grid:
+            ProfilePostsGrid(posts: posts)
+        case .reels:
+            ProfileReelsGrid(reels: reels)
+        case .tagged:
+            taggedPlaceholder
+        }
+    }
+
+    private var taggedPlaceholder: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "person.crop.square")
+                .font(.title2)
+                .foregroundStyle(.secondary)
+            Text("No tagged posts")
+                .font(.headline)
+            Text("Photos you're tagged in aren't indexed on the hub yet.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+        }
+        .padding(.vertical, 40)
+        .frame(maxWidth: .infinity)
+    }
+
+    @MainActor
+    private func refreshUnreadDMs() async {
+        unreadDMCount = (try? await service.unreadDMCount()) ?? 0
     }
 
     private var tabSelector: some View {
@@ -109,9 +177,10 @@ struct ProfileView: View {
         isLoading = true
         errorMessage = nil
         do {
-            let (u, p) = try await service.profile(tid: tid)
+            let (u, p, r) = try await service.profile(tid: tid)
             user = u
             posts = p
+            reels = r
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -122,6 +191,8 @@ struct ProfileView: View {
 private struct ProfileHeader: View {
     let user: User
     @Binding var showEditProfile: Bool
+    var onFollowers: () -> Void = {}
+    var onFollowing: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -178,8 +249,14 @@ private struct ProfileHeader: View {
     private var statsRow: some View {
         HStack(spacing: 20) {
             stat(value: user.postsCount, label: "Posts")
-            stat(value: user.followersCount, label: "Followers")
-            stat(value: user.followingCount, label: "Following")
+            Button(action: onFollowers) {
+                stat(value: user.followersCount, label: "Followers")
+            }
+            .buttonStyle(.plain)
+            Button(action: onFollowing) {
+                stat(value: user.followingCount, label: "Following")
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -213,9 +290,46 @@ struct ProfilePostsGrid: View {
         } else {
             LazyVGrid(columns: columns, spacing: 2) {
                 ForEach(posts) { post in
-                    RemoteImage(url: post.imageURLs.first)
-                        .aspectRatio(1, contentMode: .fill)
-                        .clipped()
+                    NavigationLink(value: post) {
+                        RemoteImage(url: post.imageURLs.first)
+                            .aspectRatio(1, contentMode: .fill)
+                            .clipped()
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+}
+
+struct ProfileReelsGrid: View {
+    let reels: [Reel]
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 3)
+
+    var body: some View {
+        if reels.isEmpty {
+            VStack(spacing: 8) {
+                Image(systemName: "play.square")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+                Text("No reels yet")
+                    .font(.headline)
+            }
+            .padding(.vertical, 40)
+            .frame(maxWidth: .infinity)
+        } else {
+            LazyVGrid(columns: columns, spacing: 2) {
+                ForEach(reels) { reel in
+                    ZStack {
+                        RemoteImage(url: reel.thumbnailURL ?? reel.videoURL)
+                            .aspectRatio(9 / 16, contentMode: .fill)
+                            .clipped()
+                        Image(systemName: "play.fill")
+                            .font(.title3)
+                            .foregroundStyle(.white)
+                            .shadow(radius: 2)
+                    }
                 }
             }
         }
