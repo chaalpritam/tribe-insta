@@ -184,6 +184,10 @@ private struct ReelCard: View {
         }
     }
 
+    private var reelShareText: String {
+        "@\(reel.author.username) on Tribe"
+    }
+
     private func syncFromCache() {
         guard let hash = reel.hash, interactions.loaded else { return }
         reel.isLiked = interactions.contains(liked: hash)
@@ -227,14 +231,9 @@ private struct ReelCard: View {
                 Text(reel.author.username)
                     .font(.subheadline).fontWeight(.semibold)
                     .foregroundStyle(.white)
-                Button { } label: {
-                    Text("Follow")
-                        .font(.caption).fontWeight(.semibold)
-                        .padding(.horizontal, 10).padding(.vertical, 5)
-                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(.white, lineWidth: 1))
-                        .foregroundStyle(.white)
+                if let tid = reel.author.tid {
+                    FollowButton(targetTID: tid)
                 }
-                .buttonStyle(.plain)
             }
 
             if !reel.caption.isEmpty {
@@ -269,9 +268,23 @@ private struct ReelCard: View {
                 tint: .white,
                 count: reel.commentsCount
             ) { showComments = true }
-            railButton(system: "paperplane", tint: .white, count: reel.sharesCount) { }
-            Button { } label: {
-                Image(systemName: "ellipsis").font(.title3).foregroundStyle(.white)
+            if let hash = reel.hash {
+                ShareLink(
+                    item: service.api.baseURL.appendingPathComponent("v1/tweet/\(hash)"),
+                    message: Text(reelShareText)
+                ) {
+                    VStack(spacing: 3) {
+                        Image(systemName: "paperplane").font(.title2).foregroundStyle(.white)
+                        if reel.sharesCount > 0 {
+                            Text(Formatters.compactCount(reel.sharesCount))
+                                .font(.caption2).foregroundStyle(.white)
+                        }
+                    }
+                }
+            } else {
+                ShareLink(item: reelShareText) {
+                    Image(systemName: "paperplane").font(.title2).foregroundStyle(.white)
+                }
             }
             RemoteImage(url: reel.author.avatarURL)
                 .frame(width: 26, height: 26)

@@ -17,6 +17,9 @@ struct ActivityView: View {
             content
                 .navigationTitle("Notifications")
                 .navigationBarTitleDisplayMode(.inline)
+                .navigationDestination(for: String.self) { tid in
+                    UserProfileView(tid: tid)
+                }
         }
         .task { await load() }
     }
@@ -33,6 +36,7 @@ struct ActivityView: View {
                         ForEach(group.items) { note in
                             NotificationRow(notification: note)
                                 .listRowSeparator(.hidden)
+                                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                         }
                     }
                 }
@@ -113,6 +117,17 @@ struct NotificationRow: View {
     let notification: AppNotification
 
     var body: some View {
+        Group {
+            if let tid = notification.actor.tid, notification.kind != .follow {
+                NavigationLink(value: tid) { rowContent }
+                    .buttonStyle(.plain)
+            } else {
+                rowContent
+            }
+        }
+    }
+
+    private var rowContent: some View {
         HStack(alignment: .center, spacing: 12) {
             AvatarView(url: notification.actor.avatarURL, size: 44)
 
@@ -157,14 +172,9 @@ struct NotificationRow: View {
                 EmptyView()
             }
         case .follow:
-            Button { } label: {
-                Text("Follow")
-                    .font(.subheadline).fontWeight(.semibold)
-                    .padding(.horizontal, 14).padding(.vertical, 6)
-                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 8))
-                    .foregroundStyle(.white)
+            if let tid = notification.actor.tid {
+                FollowButton(targetTID: tid)
             }
-            .buttonStyle(.plain)
         }
     }
 }
