@@ -20,6 +20,8 @@ struct ConnectFlow: View {
                         CreateAppKeyView()
                     case .importKey:
                         ImportIdentityView()
+                    case .restoreBackup:
+                        RestoreBackupView()
                     }
                 }
         }
@@ -32,6 +34,7 @@ struct ConnectFlow: View {
         case seedPhrase
         case createKey
         case importKey
+        case restoreBackup
     }
 }
 
@@ -43,14 +46,14 @@ private struct ConnectWelcomeView: View {
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
-            Image(systemName: "location.circle.fill")
+            Image(systemName: "camera.circle.fill")
                 .font(.system(size: 72))
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(Theme.primary)
             VStack(spacing: 8) {
                 Text("Tribe")
                     .font(.largeTitle.bold())
-                Text("Hyperlocal social on the Tribe protocol. Connect your identity, pick your city, explore your neighborhood.")
+                Text("Photo social on the Tribe protocol. Connect your identity and share posts, stories, and reels with your network.")
                     .font(.subheadline)
                     .foregroundStyle(Theme.textSecondary)
                     .multilineTextAlignment(.center)
@@ -81,6 +84,11 @@ private struct ConfigureHubView: View {
     var body: some View {
         Form {
             Section {
+                ForEach(HubPresets.quickPicks, id: \.label) { pick in
+                    Button(pick.label) {
+                        hubInput = pick.url.absoluteString
+                    }
+                }
                 TextField("http://127.0.0.1:4000", text: $hubInput)
                     .keyboardType(.URL)
                     .textInputAutocapitalization(.never)
@@ -88,7 +96,7 @@ private struct ConfigureHubView: View {
             } header: {
                 Text("Hub URL")
             } footer: {
-                Text("Point at your Tribe hub. Use the default for `tribe start` on this machine.")
+                Text("Point at your Tribe hub. On a phone, use your Mac's LAN IP (from `tribe share`) instead of 127.0.0.1.")
             }
             if let error {
                 Section {
@@ -176,6 +184,13 @@ private struct IdentityChoiceView: View {
                     title: "Import TID + app key",
                     subtitle: "Paste credentials from tribe-app"
                 ) { path.append(ConnectFlow.Step.importKey) }
+
+                identityRow(
+                    icon: "doc.badge.arrow.up",
+                    iconTint: Theme.primary,
+                    title: "Restore from backup",
+                    subtitle: "Open a .tribe / .tribe.enc file from tribe-app"
+                ) { path.append(ConnectFlow.Step.restoreBackup) }
             }
         }
         .listStyle(.insetGrouped)
@@ -187,6 +202,7 @@ private struct IdentityChoiceView: View {
 
     private func identityRow(
         icon: String,
+        iconTint: Color = Theme.primary,
         title: String,
         subtitle: String,
         action: @escaping () -> Void
@@ -201,7 +217,7 @@ private struct IdentityChoiceView: View {
                 }
             } icon: {
                 Image(systemName: icon)
-                    .foregroundStyle(Theme.primary)
+                    .foregroundStyle(iconTint)
             }
         }
     }
