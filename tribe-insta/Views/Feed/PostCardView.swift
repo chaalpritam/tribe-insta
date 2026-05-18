@@ -9,6 +9,7 @@ struct PostCardView: View {
     @State private var showComments: Bool = false
     @State private var showDeleteConfirm = false
     @State private var showMoreMenu = false
+    @State private var showReport = false
 
     @EnvironmentObject private var service: TribeService
     @EnvironmentObject private var state: AppState
@@ -28,6 +29,8 @@ struct PostCardView: View {
             timestampRow
         }
         .padding(.bottom, 12)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilitySummary)
         .onAppear { syncFromCache() }
         .onChange(of: interactions.likedHashes) { _, _ in syncFromCache() }
         .onChange(of: interactions.bookmarkedHashes) { _, _ in syncFromCache() }
@@ -39,8 +42,19 @@ struct PostCardView: View {
                 Button("Delete post", role: .destructive) {
                     showDeleteConfirm = true
                 }
+            } else {
+                Button("Report", role: .destructive) {
+                    showReport = true
+                }
             }
             Button("Cancel", role: .cancel) {}
+        }
+        .sheet(isPresented: $showReport) {
+            ReportContentSheet(
+                postHash: post.hash,
+                authorTID: post.author.tid,
+                authorUsername: post.author.username
+            )
         }
         .alert("Delete this post?", isPresented: $showDeleteConfirm) {
             Button("Delete", role: .destructive) { Task { await deletePost() } }
@@ -59,6 +73,10 @@ struct PostCardView: View {
         let user = post.author.username
         let caption = post.caption.isEmpty ? "" : " — \(post.caption)"
         return "@\(user) on Tribe\(caption)"
+    }
+
+    private var accessibilitySummary: String {
+        "Post by \(post.author.username). \(post.likesCount) likes. \(post.caption)"
     }
 
     // MARK: Header

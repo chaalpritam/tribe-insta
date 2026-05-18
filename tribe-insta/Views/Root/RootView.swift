@@ -11,6 +11,8 @@ struct RootView: View {
     @EnvironmentObject private var state: AppState
     @State private var selection: Tab = .feed
     @State private var showCreate: Bool = false
+    @State private var showBackupReminder = false
+    @AppStorage("tribe.hasSeenBackupReminder") private var hasSeenBackupReminder = false
 
     private let badgeTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
@@ -53,6 +55,33 @@ struct RootView: View {
         }
         .onReceive(badgeTimer) { _ in
             Task { await state.refreshBadgeCounts() }
+        }
+        .onAppear {
+            if !hasSeenBackupReminder {
+                showBackupReminder = true
+                hasSeenBackupReminder = true
+            }
+        }
+        .alert("Back up your account", isPresented: $showBackupReminder) {
+            Button("Open Settings") { selection = .profile }
+            Button("Later", role: .cancel) {}
+        } message: {
+            Text("Export a .tribe backup from Settings before you lose this device. It's the only way to recover your app key.")
+        }
+        .sheet(item: $state.pendingDeepLink) { link in
+            deepLinkSheet(link)
+        }
+    }
+
+    @ViewBuilder
+    private func deepLinkSheet(_ link: DeepLink) -> some View {
+        switch link {
+        case .post(let hash):
+            PostDetailLoaderView(hash: hash)
+        case .profile(let tid):
+            NavigationStack {
+                UserProfileView(tid: tid)
+            }
         }
     }
 

@@ -62,6 +62,18 @@ struct SettingsView: View {
                     }
                 }
 
+                Section {
+                    Link(destination: URL(string: "https://github.com/chaalpritam/TribeEco")!) {
+                        Label("TribeEco on GitHub", systemImage: "link")
+                    }
+                    Link(destination: URL(string: "https://github.com/chaalpritam/TribeEco/blob/master/README.md")!) {
+                        Label("Protocol & privacy notes", systemImage: "hand.raised")
+                    }
+                } footer: {
+                    Text("Decentralized UGC — you are responsible for content you publish. Report posts via the ⋯ menu on any post.")
+                        .font(.caption2)
+                }
+
                 Section("Identity") {
                     LabeledContent("TID", value: state.myTID ?? "—")
                     LabeledContent("Username", value: state.myUsername ?? "—")
