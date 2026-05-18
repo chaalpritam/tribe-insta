@@ -7,6 +7,7 @@ import AVKit
 /// vertical is the same rotation hack the original mock used.
 struct ReelsView: View {
     @EnvironmentObject private var service: TribeService
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var reels: [Reel] = []
     @State private var currentIndex: Int = 0
@@ -15,6 +16,7 @@ struct ReelsView: View {
     @State private var reelsCursor: String?
     @State private var errorMessage: String?
     @State private var showCreate = false
+    @State private var playbackAllowed = true
 
     var body: some View {
         GeometryReader { proxy in
@@ -44,6 +46,9 @@ struct ReelsView: View {
         .sheet(isPresented: $showCreate) {
             CreatePostView()
         }
+        .onChange(of: scenePhase) { _, phase in
+            playbackAllowed = phase == .active
+        }
     }
 
     @ViewBuilder
@@ -53,7 +58,12 @@ struct ReelsView: View {
         } else {
             TabView(selection: $currentIndex) {
                 ForEach(Array(reels.enumerated()), id: \.element.id) { idx, reel in
-                    ReelCard(reel: reel, isCurrent: idx == currentIndex)
+                    ReelCard(
+                        reel: reel,
+                        isCurrent: idx == currentIndex,
+                        prefetch: abs(idx - currentIndex) <= 1,
+                        playbackAllowed: playbackAllowed
+                    )
                         .frame(width: size.width, height: size.height)
                         .rotationEffect(.degrees(-90))
                         .tag(idx)
@@ -143,6 +153,8 @@ struct ReelsView: View {
 private struct ReelCard: View {
     @State var reel: Reel
     let isCurrent: Bool
+    let prefetch: Bool
+    let playbackAllowed: Bool
 
     @State private var player: AVPlayer? = nil
     @State private var showComments: Bool = false
@@ -171,12 +183,29 @@ private struct ReelCard: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black)
         .onAppear {
-            setupPlayer()
+            if prefetch || isCurrent {
+                setupPlayer()
+            }
             syncFromCache()
         }
         .onDisappear { player?.pause() }
         .onChange(of: isCurrent) { _, current in
-            if current { player?.play() } else { player?.pause() }
+            if current, playbackAllowed {
+                setupPlayer()
+                player?.play()
+            } else {
+                player?.pause()
+            }
+        }
+        .onChange(of: prefetch) { _, shouldPrefetch in
+            if shouldPrefetch { setupPlayer() }
+        }
+        .onChange(of: playbackAllowed) { _, allowed in
+            if allowed, isCurrent {
+                player?.play()
+            } else {
+                player?.pause()
+            }
         }
         .onChange(of: interactions.likedHashes) { _, _ in syncFromCache() }
         .sheet(isPresented: $showComments) {

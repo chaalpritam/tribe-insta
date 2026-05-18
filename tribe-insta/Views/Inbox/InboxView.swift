@@ -13,6 +13,7 @@ struct InboxView: View {
     @State private var conversations: [DMConversation] = []
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
+    @State private var showNewMessage = false
 
     var body: some View {
         NavigationStack {
@@ -20,9 +21,19 @@ struct InboxView: View {
                 .navigationTitle("Messages")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            showNewMessage = true
+                        } label: {
+                            Image(systemName: "square.and.pencil")
+                        }
+                    }
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("Done") { dismiss() }
                     }
+                }
+                .sheet(isPresented: $showNewMessage) {
+                    NewMessageView()
                 }
         }
         .task { await load() }
