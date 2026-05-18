@@ -26,6 +26,8 @@ struct CreatePostView: View {
     @State private var music: String = ""
     @State private var isLoading: Bool = false
     @State private var isPublishing: Bool = false
+    @State private var publishStatus: String?
+    @State private var showCamera: Bool = false
     @State private var errorMessage: String?
 
     private static let maxImages = 10
@@ -67,6 +69,12 @@ struct CreatePostView: View {
                     } else if mode == .reel {
                         audioTitleField
                     }
+                    if let publishStatus {
+                        Text(publishStatus)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                     if let errorMessage {
                         Text(errorMessage)
                             .font(.footnote).foregroundStyle(.red)
@@ -99,6 +107,24 @@ struct CreatePostView: View {
         .onChange(of: pickerItems) { _, newValue in
             Task { await loadPickerItems(newValue) }
         }
+        .fullScreenCover(isPresented: $showCamera) {
+            MediaCapturePicker(
+                kind: mode == .reel ? .video : .photo,
+                onPhoto: { image in
+                    showCamera = false
+                    if let jpeg = Self.encodeJPEG(image) {
+                        photoLoadeds = [LoadedImage(preview: image, jpegData: jpeg)]
+                        loadedVideo = nil
+                    }
+                },
+                onVideo: { url in
+                    showCamera = false
+                    Task { await ingestCapturedVideo(url) }
+                },
+                onCancel: { showCamera = false }
+            )
+            .ignoresSafeArea()
+        }
     }
 
     // MARK: Sections
@@ -125,35 +151,55 @@ struct CreatePostView: View {
     }
 
     private var emptyPhotoPicker: some View {
-        PhotosPicker(
-            selection: $pickerItems,
-            maxSelectionCount: mode == .story ? 1 : Self.maxImages,
-            selectionBehavior: .ordered,
-            matching: .images
-        ) {
-            placeholder(
-                icon: "photo.on.rectangle.angled",
-                title: "Tap to choose " + (mode == .story ? "a photo" : "photos"),
-                subtitle: mode == .story ? nil : "Up to \(Self.maxImages)"
-            )
+        VStack(spacing: 10) {
+            PhotosPicker(
+                selection: $pickerItems,
+                maxSelectionCount: mode == .story ? 1 : Self.maxImages,
+                selectionBehavior: .ordered,
+                matching: .images
+            ) {
+                placeholder(
+                    icon: "photo.on.rectangle.angled",
+                    title: "Choose from library",
+                    subtitle: mode == .story ? nil : "Up to \(Self.maxImages)"
+                )
+            }
+            .buttonStyle(.plain)
+            Button {
+                showCamera = true
+            } label: {
+                Label("Take photo", systemImage: "camera.fill")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+            }
+            .buttonStyle(.bordered)
         }
-        .buttonStyle(.plain)
     }
 
     private var emptyVideoPicker: some View {
-        PhotosPicker(
-            selection: $pickerItems,
-            maxSelectionCount: 1,
-            selectionBehavior: .ordered,
-            matching: .videos
-        ) {
-            placeholder(
-                icon: "video.fill",
-                title: "Tap to choose a video",
-                subtitle: "Up to 100 MB"
-            )
+        VStack(spacing: 10) {
+            PhotosPicker(
+                selection: $pickerItems,
+                maxSelectionCount: 1,
+                selectionBehavior: .ordered,
+                matching: .videos
+            ) {
+                placeholder(
+                    icon: "video.fill",
+                    title: "Choose from library",
+                    subtitle: "Up to 100 MB"
+                )
+            }
+            .buttonStyle(.plain)
+            Button {
+                showCamera = true
+            } label: {
+                Label("Record video", systemImage: "video.fill")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+            }
+            .buttonStyle(.bordered)
         }
-        .buttonStyle(.plain)
     }
 
     private func placeholder(icon: String, title: String, subtitle: String?) -> some View {
@@ -379,27 +425,36 @@ struct CreatePostView: View {
         switch mode {
         case .reel:
             guard let first = items.first,
-                  let data = try? await first.loadTransferable(type: Data.self)
+                  let raw = try? await first.loadTransferable(type: Data.self)
             else {
                 loadedVideo = nil
                 return
             }
-            guard data.count <= Self.hubVideoCap else {
-                errorMessage = "Video exceeds 100 MB cap."
-                loadedVideo = nil
-                return
-            }
             let resolvedContentType = contentType(for: first) ?? "video/mp4"
-            let thumbnail = await Self.extractFirstFrame(
-                data: data,
-                contentType: resolvedContentType
-            )
-            loadedVideo = LoadedVideo(
-                url: URL(fileURLWithPath: "(picker)"),
-                data: data,
-                contentType: resolvedContentType,
-                thumbnail: thumbnail
-            )
+            let ext = resolvedContentType == "video/quicktime" ? "mov" : "mp4"
+            let tmp = FileManager.default.temporaryDirectory
+                .appendingPathComponent("reel-pick-\(UUID().uuidString).\(ext)")
+            do {
+                try raw.write(to: tmp)
+                publishStatus = "Compressing video…"
+                let data = try await VideoCompressor.compressForUpload(sourceURL: tmp)
+                publishStatus = nil
+                guard data.count <= Self.hubVideoCap else {
+                    errorMessage = "Video exceeds 100 MB after compression."
+                    loadedVideo = nil
+                    return
+                }
+                let thumbnail = await Self.extractFirstFrame(data: data, contentType: "video/mp4")
+                loadedVideo = LoadedVideo(
+                    url: tmp,
+                    data: data,
+                    contentType: "video/mp4",
+                    thumbnail: thumbnail
+                )
+            } catch {
+                errorMessage = error.localizedDescription
+                loadedVideo = nil
+            }
             photoLoadeds = []
         case .post, .story:
             var loaded: [LoadedImage] = []
@@ -417,14 +472,46 @@ struct CreatePostView: View {
     }
 
     @MainActor
+    private func ingestCapturedVideo(_ url: URL) async {
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        do {
+            publishStatus = "Compressing video…"
+            let data = try await VideoCompressor.compressForUpload(sourceURL: url)
+            guard data.count <= Self.hubVideoCap else {
+                errorMessage = "Video exceeds 100 MB after compression."
+                return
+            }
+            let thumbnail = await Self.extractFirstFrame(data: data, contentType: "video/mp4")
+            loadedVideo = LoadedVideo(
+                url: url,
+                data: data,
+                contentType: "video/mp4",
+                thumbnail: thumbnail
+            )
+            photoLoadeds = []
+            publishStatus = nil
+        } catch {
+            errorMessage = error.localizedDescription
+            publishStatus = nil
+        }
+    }
+
+    @MainActor
     private func share() async {
         errorMessage = nil
+        publishStatus = "Uploading…"
         isPublishing = true
-        defer { isPublishing = false }
+        defer {
+            isPublishing = false
+            publishStatus = nil
+        }
         do {
             switch mode {
             case .post:
                 guard !photoLoadeds.isEmpty else { return }
+                publishStatus = "Uploading \(photoLoadeds.count) photo(s)…"
                 _ = try await service.publishPhotoPost(
                     images: photoLoadeds.map { ($0.jpegData, "image/jpeg") },
                     caption: caption.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -438,6 +525,7 @@ struct CreatePostView: View {
                 )
             case .reel:
                 guard let video = loadedVideo else { return }
+                publishStatus = "Uploading video…"
                 _ = try await service.publishReel(
                     video: (video.data, video.contentType),
                     caption: caption.trimmingCharacters(in: .whitespacesAndNewlines),

@@ -34,7 +34,9 @@ targets:
         SWIFT_EMIT_LOC_STRINGS: YES
         ENABLE_PREVIEWS: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_NSCameraUsageDescription: "Tribe uses the camera to scan a pairing QR from tribe-app on the desktop."
+        INFOPLIST_KEY_NSCameraUsageDescription: "Tribe uses the camera to capture photos and videos, and to scan pairing QRs from tribe-app."
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Tribe uses the microphone when recording video for reels and stories."
+        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "Tribe accesses your photo library to choose images and videos to share."
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_IDENTITY: "Apple Development"
         DEVELOPMENT_TEAM: ""
