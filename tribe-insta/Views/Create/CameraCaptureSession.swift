@@ -3,7 +3,6 @@ import SwiftUI
 import UIKit
 
 /// Live camera preview with photo + video capture for the home swipe surface.
-@MainActor
 final class CameraCaptureModel: NSObject, ObservableObject {
     enum Mode: String, CaseIterable {
         case post = "POST"
@@ -19,10 +18,8 @@ final class CameraCaptureModel: NSObject, ObservableObject {
     private let sessionQueue = DispatchQueue(label: "tribe.camera.session")
     private let photoOutput = AVCapturePhotoOutput()
     private let movieOutput = AVCaptureMovieFileOutput()
-    private var videoInput: AVCaptureDeviceInput?
     private var currentPosition: AVCaptureDevice.Position = .back
     private var recordingCompletion: ((Result<URL, Error>) -> Void)?
-
     private var photoCompletion: ((UIImage?) -> Void)?
 
     func configure() {
@@ -31,7 +28,7 @@ final class CameraCaptureModel: NSObject, ObservableObject {
             startSessionIfNeeded()
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
-                Task { @MainActor in
+                DispatchQueue.main.async {
                     if granted {
                         self?.startSessionIfNeeded()
                     } else {
@@ -40,7 +37,7 @@ final class CameraCaptureModel: NSObject, ObservableObject {
                 }
             }
         default:
-            permissionDenied = true
+            DispatchQueue.main.async { self.permissionDenied = true }
         }
     }
 
@@ -53,29 +50,37 @@ final class CameraCaptureModel: NSObject, ObservableObject {
 
     func flipCamera() {
         sessionQueue.async { [weak self] in
-            self?.reconfigureCamera(position: self?.currentPosition == .back ? .front : .back)
+            guard let self else { return }
+            let next: AVCaptureDevice.Position = self.currentPosition == .back ? .front : .back
+            self.reconfigureCamera(position: next)
         }
     }
 
     func capturePhoto(completion: @escaping (UIImage?) -> Void) {
         guard mode == .post else { return }
         photoCompletion = completion
-        let settings = AVCapturePhotoSettings()
-        photoOutput.capturePhoto(with: settings, delegate: self)
+        sessionQueue.async { [weak self] in
+            guard let self else { return }
+            let settings = AVCapturePhotoSettings()
+            self.photoOutput.capturePhoto(with: settings, delegate: self)
+        }
     }
 
     func toggleRecording(completion: @escaping (Result<URL, Error>) -> Void) {
         guard mode == .reel else { return }
-        if isRecording {
-            movieOutput.stopRecording()
-            recordingCompletion = completion
-        } else {
-            let url = FileManager.default.temporaryDirectory
-                .appendingPathComponent("reel-capture-\(UUID().uuidString).mov")
-            try? FileManager.default.removeItem(at: url)
-            recordingCompletion = completion
-            movieOutput.startRecording(to: url, recordingDelegate: self)
-            isRecording = true
+        sessionQueue.async { [weak self] in
+            guard let self else { return }
+            if self.movieOutput.isRecording {
+                self.recordingCompletion = completion
+                self.movieOutput.stopRecording()
+            } else {
+                let url = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("reel-capture-\(UUID().uuidString).mov")
+                try? FileManager.default.removeItem(at: url)
+                self.recordingCompletion = completion
+                self.movieOutput.startRecording(to: url, recordingDelegate: self)
+                DispatchQueue.main.async { self.isRecording = true }
+            }
         }
     }
 
@@ -93,6 +98,8 @@ final class CameraCaptureModel: NSObject, ObservableObject {
 
     private func reconfigureCamera(position: AVCaptureDevice.Position) {
         session.beginConfiguration()
+        defer { session.commitConfiguration() }
+
         for input in session.inputs { session.removeInput(input) }
         for output in session.outputs { session.removeOutput(output) }
 
@@ -100,51 +107,49 @@ final class CameraCaptureModel: NSObject, ObservableObject {
               let input = try? AVCaptureDeviceInput(device: device),
               session.canAddInput(input)
         else {
-            session.commitConfiguration()
-            Task { @MainActor in self.permissionDenied = true }
+            DispatchQueue.main.async { self.permissionDenied = true }
             return
         }
         session.addInput(input)
-        videoInput = input
         currentPosition = position
 
         if session.canAddOutput(photoOutput) { session.addOutput(photoOutput) }
         if session.canAddOutput(movieOutput) { session.addOutput(movieOutput) }
 
         session.sessionPreset = .high
-        session.commitConfiguration()
     }
 }
 
 extension CameraCaptureModel: AVCapturePhotoCaptureDelegate {
-    nonisolated func photoOutput(
+    func photoOutput(
         _ output: AVCapturePhotoOutput,
         didFinishProcessingPhoto photo: AVCapturePhoto,
         error: Error?
     ) {
         let image = photo.fileDataRepresentation().flatMap { UIImage(data: $0) }
-        Task { @MainActor in
-            photoCompletion?(image)
-            photoCompletion = nil
+        DispatchQueue.main.async { [weak self] in
+            self?.photoCompletion?(image)
+            self?.photoCompletion = nil
         }
     }
 }
 
 extension CameraCaptureModel: AVCaptureFileOutputRecordingDelegate {
-    nonisolated func fileOutput(
+    func fileOutput(
         _ output: AVCaptureFileOutput,
         didFinishRecordingTo outputFileURL: URL,
         from connections: [AVCaptureConnection],
         error: Error?
     ) {
-        Task { @MainActor in
-            isRecording = false
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.isRecording = false
             if let error {
-                recordingCompletion?(.failure(error))
+                self.recordingCompletion?(.failure(error))
             } else {
-                recordingCompletion?(.success(outputFileURL))
+                self.recordingCompletion?(.success(outputFileURL))
             }
-            recordingCompletion = nil
+            self.recordingCompletion = nil
         }
     }
 }

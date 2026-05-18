@@ -77,7 +77,6 @@
 		DE5E092EA86F5E02B4830063 /* tribe_instaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 705F9EA1D7556BB8DFFFF72A /* tribe_instaApp.swift */; };
 		E1FC3A2BED4F926CD7F1A1F5 /* SolanaHD.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AEDE4347AD5887336EAFA0 /* SolanaHD.swift */; };
 		E5D2F1FD4E37080776F86134 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E124A34A6BC73A59311C6209 /* RootView.swift */; };
-		E7B6467FDFDE69F59A155CDA /* TabBarAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F6C687C1BA8ABBB01DD7ED0 /* TabBarAppearance.swift */; };
 		E8A95050FBAB2C4B1D94C822 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A07A1015F363C4F1FFDFD47 /* Theme.swift */; };
 		EB404370415968B53A5CA2D8 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01ED941587CB7875CE1F31D4 /* AppState.swift */; };
 		F259EE005A55164ADF716071 /* HubClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6CDA2097CDB91D6A056D5E /* HubClient.swift */; };
@@ -91,7 +90,6 @@
 		01ED941587CB7875CE1F31D4 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		0A11EDA9969ED7F1C447D2B5 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		0F46117E408E4432DC1701A8 /* TribeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TribeService.swift; sourceTree = "<group>"; };
-		0F6C687C1BA8ABBB01DD7ED0 /* TabBarAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarAppearance.swift; sourceTree = "<group>"; };
 		1748A17D48F8C0CDEF844A66 /* CameraComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraComposerView.swift; sourceTree = "<group>"; };
 		19EB8D84E2D97EE898BDDA85 /* InteractionCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionCache.swift; sourceTree = "<group>"; };
 		1A771F656A1073AF6D68CCC4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -142,7 +140,7 @@
 		ABD44C7ADEA47E8AA16D2206 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
 		ACFAB5506BC9F74ABE67C06F /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
 		AEC57F82D41E29AFF80E8BE1 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
-		AED3A331ACFBF79948CC5780 /* tribe-insta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "tribe-insta.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AED3A331ACFBF79948CC5780 /* tribe-insta.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "tribe-insta.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFBF03F77D570DA94B027FDF /* CreateAppKeyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateAppKeyView.swift; sourceTree = "<group>"; };
 		B156025342DFB447C415AD55 /* BackupFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupFile.swift; sourceTree = "<group>"; };
 		B52796C8C2C8EEE86606B209 /* PostDetailLoaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostDetailLoaderView.swift; sourceTree = "<group>"; };
@@ -373,7 +371,6 @@
 		ABD416F55A22678D3EC605A5 /* Theme */ = {
 			isa = PBXGroup;
 			children = (
-				0F6C687C1BA8ABBB01DD7ED0 /* TabBarAppearance.swift */,
 				7A07A1015F363C4F1FFDFD47 /* Theme.swift */,
 			);
 			path = Theme;
@@ -509,6 +506,7 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					DBBFFA94EFD2FDDF103EACCF = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -616,7 +614,6 @@
 				51FB05FF22FE26D93F6F78E5 /* StoriesBar.swift in Sources */,
 				8096ED1EE93EC518954E966E /* StoryViewer.swift in Sources */,
 				3A13ECB8FF958330E38AFADD /* StoryViewersSheet.swift in Sources */,
-				E7B6467FDFDE69F59A155CDA /* TabBarAppearance.swift in Sources */,
 				E8A95050FBAB2C4B1D94C822 /* Theme.swift in Sources */,
 				F95850A5D1F31CD25FC85F92 /* TribeService.swift in Sources */,
 				B24289EFDCA921F1B5876743 /* Tweet.swift in Sources */,
@@ -696,7 +693,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VA496FA427;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = "tribe-insta/Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Tribe uses the camera to capture photos and videos, and to scan pairing QRs from tribe-app.";
@@ -790,7 +787,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VA496FA427;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = "tribe-insta/Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Tribe uses the camera to capture photos and videos, and to scan pairing QRs from tribe-app.";
