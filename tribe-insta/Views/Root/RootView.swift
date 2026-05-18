@@ -50,6 +50,10 @@ struct RootView: View {
                 }
                 .tag(Tab.profile)
         }
+        .tint(.primary)
+        .toolbarBackground(.visible, for: .tabBar)
+        .toolbarBackground(Color(.systemBackground), for: .tabBar)
+        .toolbarColorScheme(.none, for: .tabBar)
         .task { await state.refreshBadgeCounts() }
         .onChange(of: selection) { _, _ in
             Task { await state.refreshBadgeCounts() }
