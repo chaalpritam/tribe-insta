@@ -14,10 +14,7 @@ import CommonCrypto
 /// layout is base64( salt[16] || nonce[12] || ciphertext || tag[16] )
 /// — matching the layout `window.crypto.subtle` produces on the web.
 ///
-/// Phase 1 ships import only. Export (the `build()` + `encrypted()`
-/// methods in tribe-ios) lands when the iOS app starts producing its
-/// own identities — for now, users create on tribe-app or tribe-ios
-/// and import the backup here.
+/// Import and export are byte-compatible with tribe-app / tribe-ios.
 struct BackupFile: Codable, Equatable {
     let version: Int
     let timestamp: Int64
@@ -42,6 +39,70 @@ struct BackupFile: Codable, Equatable {
     static let tagSize = 16
     static let pbkdf2Iterations = 100_000
     static let aesKeyLength = 32
+
+    static func build(
+        tid: String?,
+        walletAddress: String?,
+        appKey: AppKey?,
+        dmKey: DMKey?,
+        browserWalletJSON: String?
+    ) -> BackupFile {
+        let appKeySecretB64: String? = appKey.map { key in
+            var combined = Data()
+            combined.append(key.privateKey.rawRepresentation)
+            combined.append(key.publicKey.rawRepresentation)
+            return combined.base64EncodedString()
+        }
+        let dmKeypairJSON: String? = dmKey.map { dm in
+            let blob: [String: String] = [
+                "publicKey": dm.publicKey.base64EncodedString(),
+                "secretKey": dm.privateKey.base64EncodedString(),
+            ]
+            return jsonString(blob)
+        }
+        return BackupFile(
+            version: currentVersion,
+            timestamp: Int64(Date().timeIntervalSince1970 * 1000),
+            data: Payload(
+                tid: tid,
+                tidWallet: walletAddress,
+                appKeySecret: appKeySecretB64,
+                browserWallet: browserWalletJSON,
+                dmKeypair: dmKeypairJSON
+            )
+        )
+    }
+
+    func encoded() throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return try encoder.encode(self)
+    }
+
+    func encrypted(password: String) throws -> String {
+        let payload = try encoded()
+        let salt = Self.randomBytes(Self.saltSize)
+        let keyBytes = try Self.pbkdf2(
+            password: password,
+            salt: salt,
+            iterations: Self.pbkdf2Iterations,
+            keyLength: Self.aesKeyLength
+        )
+        let symmetric = SymmetricKey(data: keyBytes)
+        let sealed: AES.GCM.SealedBox
+        do {
+            sealed = try AES.GCM.seal(payload, using: symmetric)
+        } catch {
+            throw BackupError.encryptionFailed
+        }
+        guard let combined = sealed.combined else {
+            throw BackupError.encryptionFailed
+        }
+        var out = Data()
+        out.append(salt)
+        out.append(combined)
+        return out.base64EncodedString()
+    }
 
     // MARK: - Decoding
 
@@ -119,6 +180,24 @@ struct BackupFile: Codable, Equatable {
 
     // MARK: - Internals
 
+    private static func jsonString(_ object: [String: String]) -> String {
+        let data = try? JSONSerialization.data(
+            withJSONObject: object,
+            options: [.sortedKeys]
+        )
+        return data.flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
+    }
+
+    private static func randomBytes(_ count: Int) -> Data {
+        var data = Data(count: count)
+        let status: Int32 = data.withUnsafeMutableBytes { buf in
+            guard let base = buf.baseAddress else { return -1 }
+            return SecRandomCopyBytes(kSecRandomDefault, count, base)
+        }
+        precondition(status == errSecSuccess, "SecRandomCopyBytes failed")
+        return data
+    }
+
     private static func pbkdf2(
         password: String,
         salt: Data,
@@ -191,6 +270,13 @@ extension BackupFile {
         return (tid: tid, appKey: appKey, walletAddress: data.tidWallet)
     }
 
+    static func storedBrowserWalletJSON() -> String? {
+        guard let raw = try? KeychainStore.load(.browserWallet),
+              let str = String(data: raw, encoding: .utf8)
+        else { return nil }
+        return str
+    }
+
     /// Pull the 32-byte x25519 seed out of either the tribe-app JSON
     /// envelope (`{"publicKey": b64, "secretKey": b64}`) or a raw
     /// base64 of the secret. The 64-byte form (legacy nacl secretKey
@@ -227,6 +313,7 @@ enum BackupError: LocalizedError {
     case invalidAppKey
     case invalidDMKey
     case wrongPassword
+    case encryptionFailed
     case decryptionFailed
 
     var errorDescription: String? {
@@ -245,6 +332,8 @@ enum BackupError: LocalizedError {
             return "DM key in the backup isn't valid."
         case .wrongPassword:
             return "Wrong password, or the file is corrupted."
+        case .encryptionFailed:
+            return "Encryption failed."
         case .decryptionFailed:
             return "Decryption failed."
         }

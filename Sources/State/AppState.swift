@@ -72,6 +72,10 @@ final class AppState: ObservableObject {
     /// PostCardView render with a known TID; refreshed on sign-in and
     /// pull-to-refresh. Write paths keep it in sync optimistically.
     let interactions: InteractionCache
+    let restrictions: UserRestrictionsStore
+
+    @Published var unreadNotificationCount: Int = 0
+    @Published var unreadDMCount: Int = 0
 
     init() {
         // One-time correctness gates. Trap fast on startup if an
@@ -108,6 +112,7 @@ final class AppState: ObservableObject {
         // InteractionCache holds a weak ref back to self so it can
         // read `api` / `myTID` lazily without an init-order cycle.
         self.interactions = InteractionCache()
+        self.restrictions = UserRestrictionsStore()
         self.interactions.attach(to: self)
 
         // Best-effort fetch of profile metadata so the UI shows the
@@ -222,6 +227,25 @@ final class AppState: ObservableObject {
     /// appears so the badge resets to zero until something new lands.
     func markNotificationsRead(tid: String) {
         UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: Keys.notificationsReadAt(tid))
+        unreadNotificationCount = 0
+    }
+
+    /// Polls hub notification + DM unread counts for tab badges.
+    func refreshBadgeCounts() async {
+        guard let tid = myTID else {
+            unreadNotificationCount = 0
+            unreadDMCount = 0
+            return
+        }
+        let since = lastNotificationsReadAt(tid: tid)
+        async let noteCount = (try? await api.fetchUnreadCount(tid, since: since)) ?? 0
+        async let dmCount: Int = {
+            let convs = (try? await api.fetchConversations(tid)) ?? []
+            return convs.reduce(0) { $0 + $1.unreadCount }
+        }()
+        let (notes, dms) = await (noteCount, dmCount)
+        unreadNotificationCount = notes
+        unreadDMCount = dms
     }
 
     private enum Keys {

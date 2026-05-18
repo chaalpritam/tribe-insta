@@ -38,7 +38,7 @@ final class TribeService: ObservableObject {
         let page = try await api.fetchFeedPage(limit: limit)
         var posts = page.tweets.compactMap(mapToPost)
         posts = await enrichFollowing(on: posts)
-        return posts
+        return filterForFeed(posts)
     }
 
     /// Cursor-paginated photo feed. Returns the next cursor when more
@@ -47,7 +47,7 @@ final class TribeService: ObservableObject {
         let page = try await api.fetchFeedPage(cursor: cursor, limit: limit)
         var posts = page.tweets.compactMap(mapToPost)
         posts = await enrichFollowing(on: posts)
-        return (posts, page.cursor)
+        return (filterForFeed(posts), page.cursor)
     }
 
     /// Load a single photo post by protocol hash (post detail, deep links).
@@ -101,7 +101,10 @@ final class TribeService: ObservableObject {
 
     func searchUsers(_ query: String) async throws -> [User] {
         let hubUsers = try await api.searchUsers(query)
-        var users = hubUsers.map(mapToUser)
+        var users = hubUsers.map(mapToUser).filter { user in
+            guard let tid = user.tid else { return true }
+            return !state.restrictions.isBlocked(tid)
+        }
         users = await enrichFollowing(users: users)
         return users
     }
@@ -112,7 +115,7 @@ final class TribeService: ObservableObject {
         let q = trimmed.hasPrefix("#") ? String(trimmed.dropFirst()) : trimmed
         var posts = try await api.searchTweets(q).compactMap(mapToPost)
         posts = await enrichFollowing(on: posts)
-        return posts
+        return filterForFeed(posts)
     }
 
     /// Sum of unread DM counts across conversations.
@@ -128,7 +131,7 @@ final class TribeService: ObservableObject {
     /// for the demo / landing experience).
     func stories(limit: Int = 100) async throws -> [Story] {
         let raw = try await api.fetchStories(limit: limit, viewerTID: state.myTID)
-        return raw.map(mapToStory)
+        return filterStories(raw.map(mapToStory))
     }
 
     /// One author's currently-active stories, oldest-first.
@@ -240,7 +243,7 @@ final class TribeService: ObservableObject {
         sort: HubClient.ReelsSort = .engagement
     ) async throws -> (reels: [Reel], nextCursor: String?) {
         let page = try await api.fetchReelsPage(cursor: cursor, limit: limit, sort: sort)
-        return (page.reels.compactMap(mapToReel), page.cursor)
+        return (filterReels(page.reels.compactMap(mapToReel)), page.cursor)
     }
 
     /// Batch ER lookups so feed/search cards can show Following state.
@@ -607,6 +610,32 @@ final class TribeService: ObservableObject {
             throw ServiceError.notSignedIn
         }
         return (appKey, tid, "")
+    }
+
+    // MARK: - Visibility (local block / mute)
+
+    private func filterForFeed(_ posts: [Post]) -> [Post] {
+        posts.filter { post in
+            guard let tid = post.author.tid else { return true }
+            let r = state.restrictions
+            return !r.isBlocked(tid) && !r.isMuted(tid)
+        }
+    }
+
+    private func filterStories(_ stories: [Story]) -> [Story] {
+        stories.filter { story in
+            guard let tid = story.author.tid else { return true }
+            let r = state.restrictions
+            return !r.isBlocked(tid) && !r.isMuted(tid)
+        }
+    }
+
+    private func filterReels(_ reels: [Reel]) -> [Reel] {
+        reels.filter { reel in
+            guard let tid = reel.author.tid else { return true }
+            let r = state.restrictions
+            return !r.isBlocked(tid) && !r.isMuted(tid)
+        }
     }
 
     // MARK: - Mapping
