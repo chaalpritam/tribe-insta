@@ -118,8 +118,8 @@ struct RestoreBackupView: View {
                 fileContents = text
                 filename = url.lastPathComponent
                 error = nil
-            } catch {
-                error = "Couldn't read file: \(error.localizedDescription)"
+            } catch let err {
+                error = "Couldn't read file: \(err.localizedDescription)"
                 fileContents = nil
                 filename = nil
             }
