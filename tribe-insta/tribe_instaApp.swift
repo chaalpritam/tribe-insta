@@ -13,6 +13,7 @@ struct tribe_instaApp: App {
 
     init() {
         ImageCache.configureURLCache()
+        TabBarAppearance.apply()
     }
 
     var body: some Scene {
