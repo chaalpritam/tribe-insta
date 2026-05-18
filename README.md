@@ -18,9 +18,11 @@ Native SwiftUI iOS client for the [TribeEco](https://github.com/chaalpritam/Trib
 | DMs | Inbox, decrypt, compose new thread |
 | Settings | Hub/ER URLs, export backup, saved posts, block/mute (device-local) |
 
-**Not yet (needs protocol / infra):** tagged-post index, hub-wide block/mute, ER follow writes from mobile (custody key), push notifications, Instagram Live.
+**Tier 3 (app):** deep links (`tribeinsta://`), image cache, content report sheet, legal links, backup reminder, TestFlight pipeline — see [`TESTFLIGHT.md`](TESTFLIGHT.md).
 
-See [`PLAN.md`](PLAN.md) for cross-repo stories/reels history and `TribeCore` extraction.
+**Not yet (needs protocol / infra):** tagged-post index, hub-wide block/mute, ER follow writes from mobile (custody key), push notifications, S3 video CDN, Instagram Live, TribeCore package extraction.
+
+See [`PLAN.md`](PLAN.md) for cross-repo history.
 
 ## Requirements
 

@@ -42,6 +42,9 @@ targets:
         DEVELOPMENT_TEAM: ""
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
+    info:
+      path: tribe-insta/Info.plist
+      properties: {}
 
 schemes:
   tribe-insta:
