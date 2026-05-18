@@ -13,11 +13,21 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section("Hub") {
+                    ForEach(HubPresets.quickPicks, id: \.label) { pick in
+                        Button(pick.label) {
+                            hubURLText = pick.url.absoluteString
+                        }
+                    }
                     TextField("http://127.0.0.1:4000", text: $hubURLText)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .keyboardType(.URL)
-                    Text("Where signed envelopes go and where the feed comes from.")
+                    Button("Remember as LAN hub") {
+                        if let url = URL(string: hubURLText) {
+                            HubPresets.saveLANHub(url)
+                        }
+                    }
+                    Text("Use your Mac's LAN IP from `tribe share` when testing on a phone.")
                         .font(.caption2).foregroundStyle(.secondary)
                 }
 
@@ -72,8 +82,11 @@ struct SettingsView: View {
     }
 
     private func applyAndDismiss() {
-        if let url = URL(string: hubURLText), url != state.hubBaseURL {
-            state.hubBaseURL = url
+        if let url = URL(string: hubURLText) {
+            if url != state.hubBaseURL { state.hubBaseURL = url }
+            if url.host != "127.0.0.1", url.host != "localhost" {
+                HubPresets.saveLANHub(url)
+            }
         }
         if let url = URL(string: erURLText), url != state.erBaseURL {
             state.erBaseURL = url

@@ -11,7 +11,10 @@ struct ReelsView: View {
     @State private var reels: [Reel] = []
     @State private var currentIndex: Int = 0
     @State private var isLoading: Bool = false
+    @State private var isLoadingMore = false
+    @State private var reelsCursor: String?
     @State private var errorMessage: String?
+    @State private var showCreate = false
 
     var body: some View {
         GeometryReader { proxy in
@@ -25,7 +28,7 @@ struct ReelsView: View {
                     .font(.title3).fontWeight(.semibold)
                     .foregroundStyle(.white)
                 Spacer()
-                Button { } label: {
+                Button { showCreate = true } label: {
                     Image(systemName: "camera")
                         .font(.title3)
                         .foregroundStyle(.white)
@@ -34,9 +37,12 @@ struct ReelsView: View {
             .padding(.horizontal, 16)
             .padding(.top, 8)
         }
-        .task { await load() }
+        .task { await load(refresh: true) }
         .onChange(of: service.feedRevision) { _, _ in
-            Task { await load() }
+            Task { await load(refresh: true) }
+        }
+        .sheet(isPresented: $showCreate) {
+            CreatePostView()
         }
     }
 
@@ -51,6 +57,11 @@ struct ReelsView: View {
                         .frame(width: size.width, height: size.height)
                         .rotationEffect(.degrees(-90))
                         .tag(idx)
+                        .onAppear {
+                            if idx == reels.count - 1 {
+                                Task { await loadMore() }
+                            }
+                        }
                 }
             }
             .frame(width: size.height, height: size.width)
@@ -96,15 +107,33 @@ struct ReelsView: View {
     }
 
     @MainActor
-    private func load() async {
-        isLoading = true
+    private func load(refresh: Bool = false) async {
+        if refresh { reelsCursor = nil }
+        isLoading = reels.isEmpty
         errorMessage = nil
         do {
-            reels = try await service.reels()
+            let page = try await service.reelsPage()
+            reels = page.reels
+            reelsCursor = page.nextCursor
         } catch {
             errorMessage = error.localizedDescription
+            if refresh { reels = [] }
         }
         isLoading = false
+    }
+
+    @MainActor
+    private func loadMore() async {
+        guard let cursor = reelsCursor, !isLoadingMore else { return }
+        isLoadingMore = true
+        defer { isLoadingMore = false }
+        do {
+            let page = try await service.reelsPage(cursor: cursor)
+            reels.append(contentsOf: page.reels)
+            reelsCursor = page.nextCursor
+        } catch {
+            reelsCursor = nil
+        }
     }
 }
 

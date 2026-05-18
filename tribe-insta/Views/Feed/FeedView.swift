@@ -14,10 +14,13 @@ struct FeedView: View {
     @State private var viewerInitialIndex: Int = 0
     @State private var showStoryViewer: Bool = false
     @State private var isLoading: Bool = false
+    @State private var isLoadingMore = false
+    @State private var feedCursor: String?
     @State private var errorMessage: String?
+    @State private var profilePath = NavigationPath()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $profilePath) {
             ScrollView {
                 LazyVStack(spacing: 0, pinnedViews: []) {
                     if let me = state.myTID.map(currentUserViewModel) {
@@ -38,13 +41,25 @@ struct FeedView: View {
                     } else {
                         ForEach(posts) { post in
                             PostCardView(post: post)
+                                .onAppear {
+                                    if post.id == posts.last?.id {
+                                        Task { await loadMore() }
+                                    }
+                                }
                             Divider().opacity(0.4)
+                        }
+                        if isLoadingMore {
+                            ProgressView()
+                                .padding(.vertical, 16)
                         }
                     }
                 }
             }
             .refreshable {
-                await load()
+                await load(refresh: true)
+            }
+            .navigationDestination(for: String.self) { tid in
+                UserProfileView(tid: tid)
             }
             .navigationTitle("Tribe")
             .navigationBarTitleDisplayMode(.inline)
@@ -54,12 +69,11 @@ struct FeedView: View {
                         .font(.system(.title2, design: .serif).italic())
                         .fontWeight(.bold)
                 }
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button { } label: {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink {
+                        ActivityView()
+                    } label: {
                         Image(systemName: "heart")
-                    }
-                    Button { } label: {
-                        Image(systemName: "paperplane")
                     }
                 }
             }
@@ -117,20 +131,37 @@ struct FeedView: View {
     }
 
     @MainActor
-    private func load() async {
-        isLoading = true
+    private func load(refresh: Bool = false) async {
+        if refresh {
+            feedCursor = nil
+        }
+        isLoading = posts.isEmpty
         errorMessage = nil
-        // Stories failure shouldn't sink the feed — the tray just stays
-        // empty if /v1/stories errors. Posts are the load-bearing path.
         async let storiesTask: [Story] = (try? await service.stories()) ?? []
         do {
-            let fetched = try await service.feed()
-            posts = fetched
+            let page = try await service.feedPage(cursor: nil)
+            posts = page.posts
+            feedCursor = page.nextCursor
         } catch {
             errorMessage = error.localizedDescription
+            if refresh { posts = [] }
         }
         stories = await storiesTask
         isLoading = false
+    }
+
+    @MainActor
+    private func loadMore() async {
+        guard let cursor = feedCursor, !isLoadingMore else { return }
+        isLoadingMore = true
+        defer { isLoadingMore = false }
+        do {
+            let page = try await service.feedPage(cursor: cursor)
+            posts.append(contentsOf: page.posts)
+            feedCursor = page.nextCursor
+        } catch {
+            feedCursor = nil
+        }
     }
 
     /// Open the StoryViewer at the given author, with every author's

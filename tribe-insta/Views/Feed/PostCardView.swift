@@ -5,6 +5,8 @@ struct PostCardView: View {
     @State private var currentMediaIndex: Int = 0
     @State private var bumpHeart: Bool = false
     @State private var showComments: Bool = false
+    @State private var showDeleteConfirm = false
+    @State private var showMoreMenu = false
 
     @EnvironmentObject private var service: TribeService
     @EnvironmentObject private var state: AppState
@@ -30,34 +32,73 @@ struct PostCardView: View {
         .sheet(isPresented: $showComments) {
             CommentsSheet(targetHash: post.hash)
         }
+        .confirmationDialog("Post options", isPresented: $showMoreMenu, titleVisibility: .visible) {
+            if isOwnPost {
+                Button("Delete post", role: .destructive) {
+                    showDeleteConfirm = true
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .alert("Delete this post?", isPresented: $showDeleteConfirm) {
+            Button("Delete", role: .destructive) { Task { await deletePost() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This removes the post from the hub for everyone.")
+        }
+    }
+
+    private var isOwnPost: Bool {
+        guard let authorTID = post.author.tid, let myTID = state.myTID else { return false }
+        return authorTID == myTID
+    }
+
+    private var shareText: String {
+        let user = post.author.username
+        let caption = post.caption.isEmpty ? "" : " — \(post.caption)"
+        return "@\(user) on Tribe\(caption)"
     }
 
     // MARK: Header
 
     private var header: some View {
         HStack(spacing: 10) {
-            StoryAvatarView(url: post.author.avatarURL, size: 36, hasUnseen: true)
-            VStack(alignment: .leading, spacing: 1) {
-                HStack(spacing: 4) {
-                    Text(post.author.username).font(.subheadline).fontWeight(.semibold)
-                    if post.author.isVerified {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.caption2)
-                            .foregroundStyle(.blue)
+            authorLink {
+                StoryAvatarView(url: post.author.avatarURL, size: 36, hasUnseen: true)
+            }
+            authorLink {
+                VStack(alignment: .leading, spacing: 1) {
+                    HStack(spacing: 4) {
+                        Text(post.author.username).font(.subheadline).fontWeight(.semibold)
+                        if post.author.isVerified {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.caption2)
+                                .foregroundStyle(.blue)
+                        }
                     }
-                }
-                if let location = post.location {
-                    Text(location).font(.caption2).foregroundStyle(.secondary)
+                    if let location = post.location {
+                        Text(location).font(.caption2).foregroundStyle(.secondary)
+                    }
                 }
             }
             Spacer()
-            Button { } label: {
+            Button { showMoreMenu = true } label: {
                 Image(systemName: "ellipsis").font(.callout).foregroundStyle(.primary)
             }
             .buttonStyle(.plain)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
+    }
+
+    @ViewBuilder
+    private func authorLink<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        if let tid = post.author.tid {
+            NavigationLink(value: tid) { content() }
+                .buttonStyle(.plain)
+        } else {
+            content()
+        }
     }
 
     // MARK: Media
@@ -133,8 +174,14 @@ struct PostCardView: View {
             Button { showComments = true } label: {
                 Image(systemName: "bubble.right").font(.title3).foregroundStyle(.primary)
             }
-            Button { } label: {
-                Image(systemName: "paperplane").font(.title3).foregroundStyle(.primary)
+            if let hash = post.hash, let url = shareURL(for: hash) {
+                ShareLink(item: url, subject: Text(shareText), message: Text(shareText)) {
+                    Image(systemName: "paperplane").font(.title3).foregroundStyle(.primary)
+                }
+            } else {
+                ShareLink(item: shareText) {
+                    Image(systemName: "paperplane").font(.title3).foregroundStyle(.primary)
+                }
             }
             Spacer()
             Button { Task { await runBookmark() } } label: {
@@ -243,6 +290,19 @@ struct PostCardView: View {
                 post.isLiked.toggle()
                 post.likesCount += post.isLiked ? 1 : -1
             }
+        }
+    }
+
+    private func shareURL(for hash: String) -> URL? {
+        service.api.baseURL.appendingPathComponent("v1/tweet/\(hash)")
+    }
+
+    @MainActor
+    private func deletePost() async {
+        do {
+            try await service.deletePost(post)
+        } catch {
+            // Silent — user can pull to refresh if delete failed.
         }
     }
 

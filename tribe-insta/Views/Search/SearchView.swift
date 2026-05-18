@@ -34,6 +34,9 @@ struct SearchView: View {
             .onChange(of: query) { _, newValue in
                 Task { await runSearch(newValue) }
             }
+            .navigationDestination(for: String.self) { tid in
+                UserProfileView(tid: tid)
+            }
         }
         .task { await loadExplore() }
         .onChange(of: service.feedRevision) { _, _ in
@@ -138,6 +141,26 @@ private struct UserResultsList: View {
     let users: [User]
     let isLoading: Bool
 
+    private func userRow(_ user: User) -> some View {
+        HStack(spacing: 12) {
+            AvatarView(url: user.avatarURL, size: 44)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 4) {
+                    Text(user.username).fontWeight(.semibold)
+                    if user.isVerified {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.caption2).foregroundStyle(.blue)
+                    }
+                }
+                Text(user.displayName)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+        }
+        .padding(.vertical, 4)
+    }
+
     var body: some View {
         if users.isEmpty {
             VStack(spacing: 8) {
@@ -155,24 +178,15 @@ private struct UserResultsList: View {
             .frame(maxWidth: .infinity)
         } else {
             List(users) { user in
-                HStack(spacing: 12) {
-                    AvatarView(url: user.avatarURL, size: 44)
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Text(user.username).fontWeight(.semibold)
-                            if user.isVerified {
-                                Image(systemName: "checkmark.seal.fill")
-                                    .font(.caption2).foregroundStyle(.blue)
-                            }
-                        }
-                        Text(user.displayName)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                if let tid = user.tid {
+                    NavigationLink(value: tid) {
+                        userRow(user)
                     }
-                    Spacer()
+                    .listRowSeparator(.hidden)
+                } else {
+                    userRow(user)
+                        .listRowSeparator(.hidden)
                 }
-                .listRowSeparator(.hidden)
-                .padding(.vertical, 4)
             }
             .listStyle(.plain)
         }
