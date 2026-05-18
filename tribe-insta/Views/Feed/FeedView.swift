@@ -64,7 +64,6 @@ struct FeedView: View {
             .navigationDestination(for: Post.self) { post in
                 PostDetailView(post: post)
             }
-            .navigationTitle("Tribe")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

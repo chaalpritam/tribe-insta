@@ -61,7 +61,6 @@ struct ProfileView: View {
                 }
             }
             .refreshable { await load() }
-            .navigationTitle(state.myUsername ?? "Profile")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
