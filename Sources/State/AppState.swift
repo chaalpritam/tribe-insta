@@ -76,6 +76,7 @@ final class AppState: ObservableObject {
 
     @Published var unreadNotificationCount: Int = 0
     @Published var unreadDMCount: Int = 0
+    @Published var pendingDeepLink: DeepLink?
 
     init() {
         // One-time correctness gates. Trap fast on startup if an
@@ -231,6 +232,10 @@ final class AppState: ObservableObject {
     }
 
     /// Polls hub notification + DM unread counts for tab badges.
+    func openDeepLink(_ url: URL) {
+        pendingDeepLink = DeepLinkParser.parse(url)
+    }
+
     func refreshBadgeCounts() async {
         guard let tid = myTID else {
             unreadNotificationCount = 0

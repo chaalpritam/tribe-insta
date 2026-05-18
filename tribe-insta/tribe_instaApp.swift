@@ -11,12 +11,19 @@ import SwiftUI
 struct tribe_instaApp: App {
     @StateObject private var appState = AppState()
 
+    init() {
+        ImageCache.configureURLCache()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
                 .environmentObject(appState.interactions)
                 .environmentObject(TribeService(state: appState))
+                .onOpenURL { url in
+                    appState.openDeepLink(url)
+                }
         }
     }
 }
