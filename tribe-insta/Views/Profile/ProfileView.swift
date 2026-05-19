@@ -21,56 +21,51 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                    if let user {
-                        ProfileHeader(
-                            user: user,
-                            showEditProfile: $showEditProfile,
-                            onFollowers: { followListMode = .followers },
-                            onFollowing: { followListMode = .following }
-                        )
-                    } else if isLoading {
-                        ProgressView().padding(40)
-                    } else if let errorMessage {
-                        VStack(spacing: 8) {
-                            Text("Couldn't load profile")
-                                .font(.headline)
-                            Text(errorMessage)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 24)
-                            Button("Retry") { Task { await load() } }
-                                .font(.subheadline.weight(.semibold))
+            VStack(spacing: 0) {
+                ProfileTopBar(
+                    title: state.myUsername ?? "Profile",
+                    onMenu: { showSettings = true }
+                )
+                ScrollView {
+                    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                        if let user {
+                            ProfileHeader(
+                                user: user,
+                                showEditProfile: $showEditProfile,
+                                onFollowers: { followListMode = .followers },
+                                onFollowing: { followListMode = .following }
+                            )
+                        } else if isLoading {
+                            ProgressView().padding(40)
+                        } else if let errorMessage {
+                            VStack(spacing: 8) {
+                                Text("Couldn't load profile")
+                                    .font(.headline)
+                                Text(errorMessage)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 24)
+                                Button("Retry") { Task { await load() } }
+                                    .font(.subheadline.weight(.semibold))
+                            }
+                            .padding(40)
                         }
-                        .padding(40)
-                    }
 
-                    Section(header: tabSelector) {
-                        tabContent
+                        Section(header: tabSelector) {
+                            tabContent
+                        }
                     }
                 }
+                .refreshable { await load() }
             }
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: Post.self) { post in
                 PostDetailView(post: post)
             }
             .navigationDestination(item: $followListMode) { mode in
                 if let tid = state.myTID {
                     FollowListView(tid: tid, mode: mode)
-                }
-            }
-            .refreshable { await load() }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    HStack(spacing: 4) {
-                        Text(state.myUsername ?? "Profile").fontWeight(.semibold)
-                        Image(systemName: "chevron.down").font(.caption2)
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showSettings = true } label: { Image(systemName: "line.3.horizontal") }
                 }
             }
         }
@@ -158,6 +153,34 @@ struct ProfileView: View {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+}
+
+/// Custom IG-style top bar. The system nav bar is hidden because iOS 26's
+/// Liquid Glass renders custom toolbar items (the username + chevron HStack)
+/// inside a dark glass capsule no matter what `.toolbarBackground` is set
+/// to. Rendering the bar ourselves bypasses that.
+private struct ProfileTopBar: View {
+    let title: String
+    let onMenu: () -> Void
+
+    var body: some View {
+        HStack(spacing: 0) {
+            HStack(spacing: 4) {
+                Text(title).fontWeight(.semibold)
+                Image(systemName: "chevron.down").font(.caption2)
+            }
+            Spacer()
+            Button(action: onMenu) {
+                Image(systemName: "line.3.horizontal")
+                    .imageScale(.large)
+            }
+            .foregroundStyle(.primary)
+        }
+        .font(.title3)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(Color(.systemBackground))
     }
 }
 

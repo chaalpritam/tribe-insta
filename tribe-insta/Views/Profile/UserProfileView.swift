@@ -6,6 +6,7 @@ struct UserProfileView: View {
 
     @EnvironmentObject private var service: TribeService
     @EnvironmentObject private var state: AppState
+    @Environment(\.dismiss) private var dismiss
 
     @State private var user: User?
     @State private var posts: [Post] = []
@@ -18,44 +19,32 @@ struct UserProfileView: View {
     @State private var showMuteConfirm = false
 
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 0, pinnedViews: []) {
-                if let user {
-                    header(user: user)
-                } else if isLoading {
-                    ProgressView().padding(40)
-                } else if let errorMessage {
-                    errorBlock(errorMessage)
-                }
-                tabSelector
-                tabContent
-            }
-        }
-        .refreshable { await load() }
-        .navigationTitle(user?.username ?? "Profile")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            if tid != state.myTID {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        if state.restrictions.isBlocked(tid) {
-                            Button("Unblock") {
-                                state.restrictions.unblock(tid)
-                            }
-                        } else {
-                            Button("Mute posts", role: .destructive) {
-                                showMuteConfirm = true
-                            }
-                            Button("Block", role: .destructive) {
-                                showBlockConfirm = true
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
+        VStack(spacing: 0) {
+            UserProfileTopBar(
+                title: user?.username ?? "Profile",
+                showActions: tid != state.myTID,
+                isBlocked: state.restrictions.isBlocked(tid),
+                onBack: { dismiss() },
+                onUnblock: { state.restrictions.unblock(tid) },
+                onMute: { showMuteConfirm = true },
+                onBlock: { showBlockConfirm = true }
+            )
+            ScrollView {
+                LazyVStack(spacing: 0, pinnedViews: []) {
+                    if let user {
+                        header(user: user)
+                    } else if isLoading {
+                        ProgressView().padding(40)
+                    } else if let errorMessage {
+                        errorBlock(errorMessage)
                     }
+                    tabSelector
+                    tabContent
                 }
             }
+            .refreshable { await load() }
         }
+        .toolbar(.hidden, for: .navigationBar)
         .confirmationDialog("Block @\(user?.username ?? tid)?", isPresented: $showBlockConfirm) {
             Button("Block", role: .destructive) {
                 state.restrictions.block(tid)
@@ -196,5 +185,53 @@ struct UserProfileView: View {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+}
+
+/// Custom IG-style top bar for push-navigated profiles. System nav is
+/// hidden because iOS 26's Liquid Glass wraps custom toolbar items in a
+/// dark glass capsule that `.toolbarBackground` can't suppress; the
+/// back-swipe gesture still works with the bar hidden.
+private struct UserProfileTopBar: View {
+    let title: String
+    let showActions: Bool
+    let isBlocked: Bool
+    let onBack: () -> Void
+    let onUnblock: () -> Void
+    let onMute: () -> Void
+    let onBlock: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Button(action: onBack) {
+                Image(systemName: "chevron.left")
+                    .imageScale(.large)
+                    .fontWeight(.semibold)
+            }
+            .foregroundStyle(.primary)
+
+            Text(title).fontWeight(.semibold)
+
+            Spacer()
+
+            if showActions {
+                Menu {
+                    if isBlocked {
+                        Button("Unblock", action: onUnblock)
+                    } else {
+                        Button("Mute posts", role: .destructive, action: onMute)
+                        Button("Block", role: .destructive, action: onBlock)
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .imageScale(.large)
+                }
+                .foregroundStyle(.primary)
+            }
+        }
+        .font(.title3)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(Color(.systemBackground))
     }
 }

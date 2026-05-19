@@ -21,73 +21,52 @@ struct FeedView: View {
 
     var body: some View {
         NavigationStack(path: $profilePath) {
-            ScrollView {
-                LazyVStack(spacing: 0, pinnedViews: []) {
-                    if let me = state.myTID.map(currentUserViewModel) {
-                        StoriesBar(
-                            currentUser: me,
-                            stories: stories,
-                            onStoryTap: { story in
-                                Task { await openStories(forAuthor: story.author.tid) }
-                            },
-                            onYourStoryTap: {
-                                Task { await openStories(forAuthor: state.myTID) }
-                            }
-                        )
-                        Divider().opacity(0.4)
-                    }
-                    if posts.isEmpty {
-                        emptyState
-                    } else {
-                        ForEach(posts) { post in
-                            PostCardView(post: post, linksToDetail: true)
-                                .onAppear {
-                                    if post.id == posts.last?.id {
-                                        Task { await loadMore() }
-                                    }
+            VStack(spacing: 0) {
+                FeedTopBar(unreadCount: state.unreadNotificationCount)
+                ScrollView {
+                    LazyVStack(spacing: 0, pinnedViews: []) {
+                        if let me = state.myTID.map(currentUserViewModel) {
+                            StoriesBar(
+                                currentUser: me,
+                                stories: stories,
+                                onStoryTap: { story in
+                                    Task { await openStories(forAuthor: story.author.tid) }
+                                },
+                                onYourStoryTap: {
+                                    Task { await openStories(forAuthor: state.myTID) }
                                 }
+                            )
                             Divider().opacity(0.4)
                         }
-                        if isLoadingMore {
-                            ProgressView()
-                                .padding(.vertical, 16)
+                        if posts.isEmpty {
+                            emptyState
+                        } else {
+                            ForEach(posts) { post in
+                                PostCardView(post: post, linksToDetail: true)
+                                    .onAppear {
+                                        if post.id == posts.last?.id {
+                                            Task { await loadMore() }
+                                        }
+                                    }
+                                Divider().opacity(0.4)
+                            }
+                            if isLoadingMore {
+                                ProgressView()
+                                    .padding(.vertical, 16)
+                            }
                         }
                     }
                 }
+                .refreshable {
+                    await load(refresh: true)
+                }
             }
-            .refreshable {
-                await load(refresh: true)
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: String.self) { tid in
                 UserProfileView(tid: tid)
             }
             .navigationDestination(for: Post.self) { post in
                 PostDetailView(post: post)
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Text("Tribe")
-                        .font(.system(.title2, design: .serif).italic())
-                        .fontWeight(.bold)
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink {
-                        ActivityView()
-                    } label: {
-                        ZStack(alignment: .topTrailing) {
-                            Image(systemName: "heart")
-                            if state.unreadNotificationCount > 0 {
-                                Text(state.unreadNotificationCount > 9 ? "9+" : "\(state.unreadNotificationCount)")
-                                    .font(.system(size: 9, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .padding(3)
-                                    .background(Color.red, in: Circle())
-                                    .offset(x: 8, y: -8)
-                            }
-                        }
-                    }
-                }
             }
         }
         .task {
@@ -232,6 +211,43 @@ struct FeedView: View {
             username: state.myUsername ?? "you",
             displayName: state.myUsername ?? "You"
         )
+    }
+}
+
+/// Custom IG-style top bar. The system nav bar is hidden because iOS 26's
+/// Liquid Glass wraps custom toolbar items in a dark glass capsule that
+/// `.toolbarBackground` can't suppress. Rendering the bar ourselves
+/// bypasses that pipeline.
+private struct FeedTopBar: View {
+    let unreadCount: Int
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Text("Tribe")
+                .font(.system(.title2, design: .serif).italic())
+                .fontWeight(.bold)
+            Spacer()
+            NavigationLink {
+                ActivityView()
+            } label: {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: "heart")
+                        .imageScale(.large)
+                    if unreadCount > 0 {
+                        Text(unreadCount > 9 ? "9+" : "\(unreadCount)")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(3)
+                            .background(Color.red, in: Circle())
+                            .offset(x: 8, y: -8)
+                    }
+                }
+            }
+            .foregroundStyle(.primary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(Color(.systemBackground))
     }
 }
 
