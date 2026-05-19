@@ -22,6 +22,7 @@ struct PostDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .opaqueNavBar()
         .task {
             guard let hash = post.hash else { return }
             isLoading = true

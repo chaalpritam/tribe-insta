@@ -35,6 +35,7 @@ struct ConversationView: View {
         }
         .navigationTitle(displayName)
         .navigationBarTitleDisplayMode(.inline)
+        .opaqueNavBar()
         .task { await load() }
     }
 

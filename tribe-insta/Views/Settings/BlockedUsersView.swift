@@ -40,6 +40,7 @@ struct BlockedUsersView: View {
         }
         .navigationTitle("Blocked accounts")
         .navigationBarTitleDisplayMode(.inline)
+        .opaqueNavBar()
         .onAppear { reload() }
     }
 

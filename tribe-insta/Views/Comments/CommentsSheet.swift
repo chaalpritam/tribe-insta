@@ -28,6 +28,7 @@ struct CommentsSheet: View {
             }
             .navigationTitle("Comments")
             .navigationBarTitleDisplayMode(.inline)
+            .opaqueNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }

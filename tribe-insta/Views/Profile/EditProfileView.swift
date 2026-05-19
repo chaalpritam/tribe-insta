@@ -64,6 +64,7 @@ struct EditProfileView: View {
             }
             .navigationTitle("Edit profile")
             .navigationBarTitleDisplayMode(.inline)
+            .opaqueNavBar()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

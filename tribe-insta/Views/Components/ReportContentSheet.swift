@@ -53,6 +53,7 @@ struct ReportContentSheet: View {
             }
             .navigationTitle("Report")
             .navigationBarTitleDisplayMode(.inline)
+            .opaqueNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }

@@ -34,6 +34,7 @@ struct PostDetailLoaderView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .opaqueNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }

@@ -22,6 +22,7 @@ struct InboxView: View {
             content
                 .navigationTitle("Messages")
                 .navigationBarTitleDisplayMode(.inline)
+                .opaqueNavBar()
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button {

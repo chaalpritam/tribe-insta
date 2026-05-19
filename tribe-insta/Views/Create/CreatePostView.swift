@@ -111,6 +111,7 @@ struct CreatePostView: View {
             }
             .navigationTitle("New " + mode.rawValue.lowercased())
             .navigationBarTitleDisplayMode(.inline)
+            .opaqueNavBar()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }

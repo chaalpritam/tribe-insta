@@ -52,6 +52,7 @@ struct ImportIdentityView: View {
         }
         .navigationTitle("Import identity")
         .navigationBarTitleDisplayMode(.inline)
+        .opaqueNavBar()
     }
 
     private func complete() async {

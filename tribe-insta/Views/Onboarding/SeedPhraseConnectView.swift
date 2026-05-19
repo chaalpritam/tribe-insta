@@ -94,6 +94,7 @@ struct SeedPhraseConnectView: View {
         }
         .navigationTitle("Seed phrase")
         .navigationBarTitleDisplayMode(.inline)
+        .opaqueNavBar()
     }
 
     private func resolve() async {

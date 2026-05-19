@@ -62,6 +62,7 @@ struct CreateAppKeyView: View {
         }
         .navigationTitle("Create app key")
         .navigationBarTitleDisplayMode(.inline)
+        .opaqueNavBar()
     }
 
     private func finish() async {

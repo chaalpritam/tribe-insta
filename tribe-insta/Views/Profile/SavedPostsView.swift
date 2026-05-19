@@ -39,6 +39,7 @@ struct SavedPostsView: View {
         }
         .navigationTitle("Saved")
         .navigationBarTitleDisplayMode(.inline)
+        .opaqueNavBar()
         .navigationDestination(for: Post.self) { post in
             PostDetailView(post: post)
         }

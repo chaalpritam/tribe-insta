@@ -120,6 +120,7 @@ private struct ConfigureHubView: View {
         }
         .navigationTitle("Connect to hub")
         .navigationBarTitleDisplayMode(.inline)
+        .opaqueNavBar()
         .onAppear {
             if hubInput.isEmpty { hubInput = app.hubBaseURL.absoluteString }
         }
@@ -198,6 +199,7 @@ private struct IdentityChoiceView: View {
         .background(Theme.onboardingBackground.ignoresSafeArea())
         .navigationTitle("Sign In")
         .navigationBarTitleDisplayMode(.large)
+        .opaqueNavBar()
     }
 
     private func identityRow(

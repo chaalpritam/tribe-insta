@@ -60,6 +60,7 @@ struct NewMessageView: View {
             }
             .navigationTitle("New message")
             .navigationBarTitleDisplayMode(.inline)
+            .opaqueNavBar()
             .searchable(text: $query, prompt: "Search users")
             .onChange(of: query) { _, newValue in
                 Task { await runSearch(newValue) }

@@ -24,6 +24,7 @@ struct SearchView: View {
             }
             .navigationTitle("Search")
             .navigationBarTitleDisplayMode(.inline)
+            .opaqueNavBar()
             .searchable(
                 text: $query,
                 placement: .navigationBarDrawer(displayMode: .always),

@@ -81,6 +81,7 @@ struct RestoreBackupView: View {
         }
         .navigationTitle("Restore backup")
         .navigationBarTitleDisplayMode(.inline)
+        .opaqueNavBar()
         .fileImporter(
             isPresented: $showFilePicker,
             allowedContentTypes: [.data, .text, .plainText, .json],

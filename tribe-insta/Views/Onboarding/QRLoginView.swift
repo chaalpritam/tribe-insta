@@ -28,6 +28,7 @@ struct QRLoginView: View {
         }
         .navigationTitle("Scan to sign in")
         .navigationBarTitleDisplayMode(.inline)
+        .opaqueNavBar()
     }
 
     private var instructionsCard: some View {

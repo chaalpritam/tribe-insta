@@ -17,6 +17,7 @@ struct ActivityView: View {
             content
                 .navigationTitle("Notifications")
                 .navigationBarTitleDisplayMode(.inline)
+                .opaqueNavBar()
                 .navigationDestination(for: String.self) { tid in
                     UserProfileView(tid: tid)
                 }

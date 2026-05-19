@@ -62,6 +62,7 @@ struct FollowListView: View {
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
+        .opaqueNavBar()
         .navigationDestination(for: String.self) { profileTID in
             UserProfileView(tid: profileTID)
         }

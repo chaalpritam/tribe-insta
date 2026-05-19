@@ -19,6 +19,7 @@ struct StoryViewersSheet: View {
             content
                 .navigationTitle("Seen by")
                 .navigationBarTitleDisplayMode(.inline)
+                .opaqueNavBar()
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("Done") { dismiss() }

@@ -55,3 +55,15 @@ enum TabBarAppearance {
         item.selected.titleTextAttributes = selected
     }
 }
+
+extension View {
+    /// Pin the nav bar to an opaque system-background fill. iOS 26's
+    /// SwiftUI nav bar ignores the UIKit `UINavigationBar.appearance()`
+    /// proxy set up above and falls back to a floating Liquid Glass
+    /// capsule (renders as a dark pill over the toolbar items). Apply
+    /// this on every NavigationStack root that shows a system toolbar.
+    func opaqueNavBar() -> some View {
+        toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color(.systemBackground), for: .navigationBar)
+    }
+}
