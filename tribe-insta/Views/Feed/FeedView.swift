@@ -61,6 +61,8 @@ struct FeedView: View {
                     await load(refresh: true)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(.systemBackground))
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: String.self) { tid in
                 UserProfileView(tid: tid)

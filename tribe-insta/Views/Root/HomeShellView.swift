@@ -14,6 +14,7 @@ struct HomeShellView: View {
 
             FeedView()
                 .tag(1)
+                .background(Color(.systemBackground))
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
         .background(Color(.systemBackground))

@@ -20,9 +20,11 @@ struct ReelsView: View {
     var body: some View {
         GeometryReader { proxy in
             content(size: proxy.size)
+                .frame(width: proxy.size.width, height: proxy.size.height)
         }
-        .background(Color.black)
-        .ignoresSafeArea(edges: [.top, .horizontal])
+        .background {
+            Color.black.ignoresSafeArea(edges: .top)
+        }
         .overlay(alignment: .top) {
             Text("Reels")
                 .font(.title3).fontWeight(.semibold)
