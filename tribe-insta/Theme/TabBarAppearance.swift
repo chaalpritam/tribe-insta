@@ -1,10 +1,10 @@
 import SwiftUI
 import UIKit
 
-/// IG-style chrome: opaque tab bar at the bottom + opaque nav bar at the top,
-/// so neither dissolves into the photo content the way iOS 26's Liquid Glass
-/// defaults do. Without this, the nav bar items render as floating glass
-/// capsules over the feed and the tab bar minimizes to a single dark pill.
+/// IG-style chrome for navigation bars. Main app tabs use `InstaBottomTabBar`
+/// instead of SwiftUI `TabView` so iOS 26's floating Liquid Glass tab bar
+/// never appears. UIKit tab bar appearance is still configured for any
+/// nested `TabView` (e.g. post carousels).
 enum TabBarAppearance {
     static func apply() {
         configureTabBar()

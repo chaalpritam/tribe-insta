@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// Five-tab shell: Home, Search, Messages (center), Reels, Profile (avatar).
-/// Swipe left on Home to open the camera. Create is no longer a tab.
+/// Swipe left on Home to open the camera. Uses a custom bottom bar instead of
+/// SwiftUI `TabView` so iOS 26's floating Liquid Glass tab bar never appears.
 struct RootView: View {
     enum Tab: Hashable {
         case feed, search, messages, reels, profile
@@ -15,64 +16,53 @@ struct RootView: View {
     private let badgeTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     var body: some View {
-        TabView(selection: $selection) {
-            HomeShellView()
-                .tabItem {
-                    Label("Home", systemImage: selection == .feed ? "house.fill" : "house")
-                }
-                .tag(Tab.feed)
-
-            SearchView()
-                .tabItem { Label("Search", systemImage: "magnifyingglass") }
-                .tag(Tab.search)
-
-            InboxView(embeddedInTab: true)
-                .tabItem {
-                    Label("Messages", systemImage: selection == .messages ? "paperplane.fill" : "paperplane")
-                }
-                .tag(Tab.messages)
-                .badge(state.unreadDMCount > 0 ? state.unreadDMCount : 0)
-
-            ReelsView()
-                .tabItem { Label("Reels", systemImage: "play.square") }
-                .tag(Tab.reels)
-
-            ProfileView()
-                .tabItem {
-                    Label {
-                        Text("Profile")
-                    } icon: {
-                        ProfileTabIcon(
-                            avatarURL: state.myAvatarURL,
-                            isSelected: selection == .profile
-                        )
-                    }
-                }
-                .tag(Tab.profile)
-        }
-        .tint(.primary)
-        .modifier(StaticTabBarBehavior())
-        .task { await state.refreshBadgeCounts() }
-        .onChange(of: selection) { _, _ in
-            Task { await state.refreshBadgeCounts() }
-        }
-        .onReceive(badgeTimer) { _ in
-            Task { await state.refreshBadgeCounts() }
-        }
-        .onAppear {
-            if !hasSeenBackupReminder {
-                showBackupReminder = true
-                hasSeenBackupReminder = true
+        tabContent
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                InstaBottomTabBar(
+                    selection: $selection,
+                    unreadDMCount: state.unreadDMCount,
+                    profileAvatarURL: state.myAvatarURL
+                )
             }
-        }
-        .alert("Back up your account", isPresented: $showBackupReminder) {
-            Button("Open Settings") { selection = .profile }
-            Button("Later", role: .cancel) {}
-        } message: {
-            Text("Export a .tribe backup from Settings before you lose this device. It's the only way to recover your app key.")
-        }
-        .sheet(item: $state.pendingDeepLink) { link in
-            deepLinkSheet(link)
+            .task { await state.refreshBadgeCounts() }
+            .onChange(of: selection) { _, _ in
+                Task { await state.refreshBadgeCounts() }
+            }
+            .onReceive(badgeTimer) { _ in
+                Task { await state.refreshBadgeCounts() }
+            }
+            .onAppear {
+                TabBarAppearance.apply()
+                if !hasSeenBackupReminder {
+                    showBackupReminder = true
+                    hasSeenBackupReminder = true
+                }
+            }
+            .alert("Back up your account", isPresented: $showBackupReminder) {
+                Button("Open Settings") { selection = .profile }
+                Button("Later", role: .cancel) {}
+            } message: {
+                Text("Export a .tribe backup from Settings before you lose this device. It's the only way to recover your app key.")
+            }
+            .sheet(item: $state.pendingDeepLink) { link in
+                deepLinkSheet(link)
+            }
+    }
+
+    @ViewBuilder
+    private var tabContent: some View {
+        switch selection {
+        case .feed:
+            HomeShellView()
+        case .search:
+            SearchView()
+        case .messages:
+            InboxView(embeddedInTab: true)
+        case .reels:
+            ReelsView()
+        case .profile:
+            ProfileView()
         }
     }
 
@@ -85,20 +75,6 @@ struct RootView: View {
             NavigationStack {
                 UserProfileView(tid: tid)
             }
-        }
-    }
-}
-
-/// iOS 26 ships a "Liquid Glass" tab bar that auto-minimizes to a single
-/// floating pill while the user scrolls. tribe-insta wants the classic
-/// IG-shaped tab bar where all five icons stay put, so pin the behavior
-/// to `.never` on supported OSes. Older OSes fall through unchanged.
-private struct StaticTabBarBehavior: ViewModifier {
-    func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
-            content.tabBarMinimizeBehavior(.never)
-        } else {
-            content
         }
     }
 }

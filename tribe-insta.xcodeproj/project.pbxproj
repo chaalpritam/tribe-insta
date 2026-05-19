@@ -63,6 +63,7 @@
 		B24289EFDCA921F1B5876743 /* Tweet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CC39B2DE02155DAFAF439AC /* Tweet.swift */; };
 		B6F2FAD59140BB68B1972A6C /* QRLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C35FE01B6A3085479DE5957 /* QRLoginView.swift */; };
 		B7906C6D0870B559FA0C3E40 /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEC57F82D41E29AFF80E8BE1 /* MockData.swift */; };
+		B825066F7F56E178E06254C7 /* InstaBottomTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F11959C28E602CC824EA7F5 /* InstaBottomTabBar.swift */; };
 		B8F7256B91977524874A3D1C /* InteractionCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19EB8D84E2D97EE898BDDA85 /* InteractionCache.swift */; };
 		BCA02F8A70BE55833EB0F1F9 /* ReelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B432D60EEE8563932D9E1F /* ReelsView.swift */; };
 		C0289D1D4DB711FEA4CEC91C /* Publish.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2DEE8C26A80C98AD2AD2DE6 /* Publish.swift */; };
@@ -128,6 +129,7 @@
 		7A07A1015F363C4F1FFDFD47 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		7BC4ADBAE8BADDA3297678FC /* ImportIdentityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportIdentityView.swift; sourceTree = "<group>"; };
 		7DEB0274F626646364A99D4C /* FollowButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowButton.swift; sourceTree = "<group>"; };
+		7F11959C28E602CC824EA7F5 /* InstaBottomTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstaBottomTabBar.swift; sourceTree = "<group>"; };
 		7FF8947B7D2B3839D699545C /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		850381B68D63406C2AAF19A1 /* InboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxView.swift; sourceTree = "<group>"; };
 		85CE8B6E0FA48A1C0F73D75E /* DM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DM.swift; sourceTree = "<group>"; };
@@ -327,6 +329,7 @@
 			isa = PBXGroup;
 			children = (
 				5BB1DCFEAD32919A4F4C869B /* HomeShellView.swift */,
+				7F11959C28E602CC824EA7F5 /* InstaBottomTabBar.swift */,
 				688A748858C800BE5C4496B3 /* ProfileTabIcon.swift */,
 				E124A34A6BC73A59311C6209 /* RootView.swift */,
 			);
@@ -586,6 +589,7 @@
 				811BCA9736E2822C4398D95B /* ImageCache.swift in Sources */,
 				5D16B838289EBA0B84563CB9 /* ImportIdentityView.swift in Sources */,
 				966A36E1ED72C0CB5B56D214 /* InboxView.swift in Sources */,
+				B825066F7F56E178E06254C7 /* InstaBottomTabBar.swift in Sources */,
 				B8F7256B91977524874A3D1C /* InteractionCache.swift in Sources */,
 				39ECF5798BEC935E4D799C97 /* InteractionReads.swift in Sources */,
 				0733CCC8D3BB521BF9359716 /* Keychain.swift in Sources */,
