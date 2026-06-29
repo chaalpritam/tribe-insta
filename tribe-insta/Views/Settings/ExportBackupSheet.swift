@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Export `.tribe` / `.tribe.enc` compatible with tribe-app and tribe-twitter.
 struct ExportBackupSheet: View {

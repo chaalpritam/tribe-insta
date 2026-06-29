@@ -1,5 +1,6 @@
 import AVFoundation
 import SwiftUI
+import TribeCore
 
 struct QRLoginView: View {
     @EnvironmentObject private var app: AppState

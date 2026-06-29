@@ -1,4 +1,5 @@
 import Foundation
+import TribeCore
 
 /// One row from `/v1/users` or a single fetch via `/v1/user/:tid`.
 ///

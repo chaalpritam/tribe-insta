@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import TribeCore
 
 /// Bridges protocol-shaped types (`Tweet`, `HubUser`, `TribeNotification`)
 /// from `Sources/` to the IG-shaped view models (`Post`, `User`,

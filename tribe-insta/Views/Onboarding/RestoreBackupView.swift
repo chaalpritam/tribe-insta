@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import TribeCore
 
 /// Import a `.tribe` / `.tribe.enc` backup exported from tribe-app
 /// or tribe-twitter. Complements QR / seed / manual app-key paths.

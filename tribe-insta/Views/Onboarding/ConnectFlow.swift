@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 struct ConnectFlow: View {
     @State private var path = NavigationPath()
