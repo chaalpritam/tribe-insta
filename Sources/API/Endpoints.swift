@@ -12,7 +12,7 @@ import TribeCore
 ///   notifications, and Phase 2 (writes) adds reactions / bookmarks on
 ///   top of `HubClient.swift` directly.
 ///
-/// Endpoint names match `tribe-app/src/lib/api.ts` so the two clients
+/// Endpoint names match `tribe-twitter-app/src/lib/api.ts` so the two clients
 /// can be eyeballed side-by-side.
 public extension HubClient {
     // MARK: - Feeds

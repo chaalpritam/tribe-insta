@@ -1,7 +1,7 @@
 import SwiftUI
 import TribeCore
 
-/// Export `.tribe` / `.tribe.enc` compatible with tribe-app and tribe-twitter.
+/// Export `.tribe` / `.tribe.enc` compatible with tribe-twitter-app and tribe-twitter.
 struct ExportBackupSheet: View {
     @EnvironmentObject private var state: AppState
     @Environment(\.dismiss) private var dismiss
@@ -27,7 +27,7 @@ struct ExportBackupSheet: View {
                     Toggle("Encrypt with password", isOn: $encrypt)
                 } footer: {
                     Text(encrypt
-                         ? "Same AES-256-GCM format as tribe-app encrypted backups."
+                         ? "Same AES-256-GCM format as tribe-twitter-app encrypted backups."
                          : "Cleartext JSON — anyone with the file can read your app key.")
                 }
 

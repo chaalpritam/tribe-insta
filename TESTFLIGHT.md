@@ -39,7 +39,7 @@ Share with external testers:
 1. Install **TestFlight** on iPhone.
 2. On a Mac on the same Wi‑Fi: `brew install tribe && tribe start`.
 3. Run `tribe share` and note the **hub URL** (use LAN IP, not `127.0.0.1`).
-4. In tribe-insta: onboarding → hub URL → sign in (QR from tribe-app or backup import).
+4. In tribe-insta: onboarding → hub URL → sign in (QR from tribe-twitter-app or backup import).
 5. Optional: point at a **seed hub** — `tribe seed set ws://<seed-host>/gossip` on the Mac, then use that hub’s HTTPS URL if exposed.
 
 ### Deep links
@@ -62,5 +62,5 @@ Then on each tester’s home Mac (or your seed): hubs peer via `PEERS` / `tribe 
 ## Not in this build
 
 - Push notifications (badges poll every 60s while the app is open)
-- Follow/unfollow writes (use tribe-app + custody key)
+- Follow/unfollow writes (use tribe-twitter-app + custody key)
 - Instagram Live

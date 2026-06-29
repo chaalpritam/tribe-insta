@@ -68,7 +68,7 @@ struct SeedPhraseConnectView: View {
                 } header: {
                     Text("App key (base64)")
                 } footer: {
-                    Text("From tribe-app Settings → View app key. Signs envelopes on this device.")
+                    Text("From tribe-twitter-app Settings → View app key. Signs envelopes on this device.")
                 }
 
                 Section {
@@ -105,7 +105,7 @@ struct SeedPhraseConnectView: View {
         do {
             let (address, _) = try SolanaHD.keypair(fromMnemonic: phraseInput)
             guard let user = try await app.api.fetchTidByWallet(address) else {
-                error = "No TID registered to this wallet on this hub. Finish onboarding in tribe-app first."
+                error = "No TID registered to this wallet on this hub. Finish onboarding in tribe-twitter-app first."
                 return
             }
             resolved = ResolvedWallet(address: address, user: user)

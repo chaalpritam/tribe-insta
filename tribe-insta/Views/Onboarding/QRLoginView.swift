@@ -36,7 +36,7 @@ struct QRLoginView: View {
         VStack(spacing: 10) {
             switch status {
             case .scanning:
-                Label("Point at the QR in tribe-app → Wallet → Pair phone", systemImage: "viewfinder")
+                Label("Point at the QR in tribe-twitter-app → Wallet → Pair phone", systemImage: "viewfinder")
                     .font(.subheadline)
             case .validating:
                 HStack(spacing: 10) {

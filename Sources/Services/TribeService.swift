@@ -381,7 +381,7 @@ final class TribeService: ObservableObject {
     /// Open a single DMMessage with our DMKey + the embedded sender
     /// x25519 pubkey. Returns the plaintext + an optional story_hash
     /// when the JSON payload includes one (story replies from this
-    /// app — and from tribe-app's StoryViewer composer — carry it).
+    /// app — and from tribe-twitter-app's StoryViewer composer — carry it).
     func decrypt(_ message: DMMessage) async throws -> DecryptedDM {
         let dmKey = try await state.ensureDMKey()
         guard let cipherBytes = Data(base64Encoded: message.ciphertext),

@@ -35,7 +35,7 @@ The protocol already does ~90% of what an Instagram-shaped client needs:
 
 **Goal:** Replace `MockData` with real hub fetches. App reads everything from
 a running `tribe-hub`. No writes yet. Onboarding accepts an existing TID +
-backup file from `tribe-app` or `tribe-twitter` — no new identity creation flow.
+backup file from `tribe-twitter-app` or `tribe-twitter` — no new identity creation flow.
 
 **Ports from `tribe-twitter`** (verbatim copies for now — extracted to a shared
 package in Phase 4):
@@ -58,7 +58,7 @@ package in Phase 4):
     from `/v1/followers/:tid` and `/v1/following/:tid`)
 - `Views/Onboarding/OnboardingView.swift` — paste TID + paste backup file
   (BIP39 import). No seed-phrase entry UI in Phase 1 to keep scope down —
-  user creates on tribe-app / tribe-twitter first, exports backup, imports here.
+  user creates on tribe-twitter-app / tribe-twitter first, exports backup, imports here.
 - Wire each tab to the service:
   - `FeedView` → `fetchFeedPage()` filtered to tweets with image embeds
   - `ProfileView` → `fetchUser(tid)` + `fetchTweets(tid)` filtered to images,
@@ -75,8 +75,8 @@ settings flow.
 **Test path:**
 
 1. `brew install tribe && tribe start` → hub on `:4000`
-2. Create identity on `tribe-app` (`brew install tribe-app && tribe-app`)
-3. Export backup file from tribe-app
+2. Create identity on `tribe-twitter-app` (`brew install tribe-twitter-app && tribe-twitter-app`)
+3. Export backup file from tribe-twitter-app
 4. Open tribe-insta, paste TID + import backup, set hub URL → see real feed
 
 **Estimated size:** ~15 files, ~1,500 LOC (mostly verbatim ports from tribe-twitter).
@@ -192,7 +192,7 @@ receive on-chain tips against a specific reel/story (would need
 through ER. Reels engagement spikes hard — a viral reel can melt the hub
 with synchronous `REACTION_ADD` writes. Move `REACTION` into ER batching.
 
-### tribe-app (Next.js) changes
+### tribe-twitter-app (Next.js) changes
 
 Web reference client needs to render what iOS posts, or content goes one-way:
 
@@ -272,7 +272,7 @@ This is a precondition for any "let's commit" step — without it, work in
 | **tribe-insta** | 3 | Stories + Reels surfaces |
 | **tribe-hub** | 3 | Video upload, STORY_ADD/STORY_VIEW envelopes, stories + story_views tables, /v1/stories + /v1/reels endpoints, post_kind/location/audio_title columns |
 | **tribe-sdk** | 3 | New MessageType entries, helpers for stories/reels |
-| **tribe-app** | 3 | Stories tray, /reels page, viewer with seen-by |
+| **tribe-twitter-app** | 3 | Stories tray, /reels page, viewer with seen-by |
 | **tribe-protocol** | — | No changes for v1 (off-chain envelopes only) |
 | **tribe-er-server** | 5 (later) | Optional: batch REACTION through ER for reels engagement |
 | **tribe-twitter + tribe-insta** | 4 | Extract `TribeCore` Swift package |

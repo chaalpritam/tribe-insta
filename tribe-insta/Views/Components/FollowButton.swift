@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Read-only follow indicator backed by the ER sequencer. Tapping
-/// explains that follows must be signed from tribe-app (custody key).
+/// explains that follows must be signed from tribe-twitter-app (custody key).
 struct FollowButton: View {
     @EnvironmentObject private var state: AppState
     let targetTID: String
@@ -73,12 +73,12 @@ private struct FollowExplainerSheet: View {
                     .foregroundStyle(.tint)
                     .padding(.top, 24)
 
-                Text(following ? "Unfollow on tribe-app" : "Follow on tribe-app")
+                Text(following ? "Unfollow on tribe-twitter-app" : "Follow on tribe-twitter-app")
                     .font(.title3.bold())
 
                 Text(following
-                     ? "Unfollows are signed by your Solana custody key. Open tribe-app, find this profile, and tap Unfollow. The ER sequencer updates here within a second."
-                     : "Follows are written to the ER sequencer with your Solana custody key. Open tribe-app on desktop to follow — this app will show Following once the sequencer confirms."
+                     ? "Unfollows are signed by your Solana custody key. Open tribe-twitter-app, find this profile, and tap Unfollow. The ER sequencer updates here within a second."
+                     : "Follows are written to the ER sequencer with your Solana custody key. Open tribe-twitter-app on desktop to follow — this app will show Following once the sequencer confirms."
                 )
                 .font(.subheadline)
                 .foregroundStyle(.secondary)

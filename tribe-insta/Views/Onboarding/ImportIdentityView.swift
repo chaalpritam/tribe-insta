@@ -27,7 +27,7 @@ struct ImportIdentityView: View {
             } header: {
                 Text("App key (base64)")
             } footer: {
-                Text("From tribe-app local storage or Settings → View app key.")
+                Text("From tribe-twitter-app local storage or Settings → View app key.")
             }
 
             if let error {

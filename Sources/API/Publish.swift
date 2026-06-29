@@ -82,7 +82,7 @@ extension HubClient {
     /// with `"media:<hash>"` references from prior `uploadMedia` calls.
     /// `parentHash` makes the tweet a reply (used for IG comments) and
     /// `channelId` defaults to the reserved "general" channel — every
-    /// TWEET_ADD has to belong to one, matching tribe-app's composer.
+    /// TWEET_ADD has to belong to one, matching tribe-twitter-app's composer.
     ///
     /// Phase 3 extensions: `postKind` ('photo' or 'reel'), `location`,
     /// `audioTitle`. All optional — older clients omit them. The hub

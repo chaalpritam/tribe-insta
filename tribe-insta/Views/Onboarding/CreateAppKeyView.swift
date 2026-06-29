@@ -37,7 +37,7 @@ struct CreateAppKeyView: View {
             } header: {
                 Text("Your TID")
             } footer: {
-                Text("Register a TID in tribe-app first, then enter it here.")
+                Text("Register a TID in tribe-twitter-app first, then enter it here.")
             }
 
             if let error {

@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import TribeCore
 
-/// Import a `.tribe` / `.tribe.enc` backup exported from tribe-app
+/// Import a `.tribe` / `.tribe.enc` backup exported from tribe-twitter-app
 /// or tribe-twitter. Complements QR / seed / manual app-key paths.
 struct RestoreBackupView: View {
     @EnvironmentObject private var app: AppState
@@ -18,7 +18,7 @@ struct RestoreBackupView: View {
     var body: some View {
         Form {
             Section {
-                Text("Pick a backup file you've exported from tribe-app or tribe-twitter. Your seed never leaves this device.")
+                Text("Pick a backup file you've exported from tribe-twitter-app or tribe-twitter. Your seed never leaves this device.")
                     .font(.subheadline)
                     .foregroundStyle(Theme.textSecondary)
             }
@@ -44,7 +44,7 @@ struct RestoreBackupView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(filename ?? "Choose backup file")
                             Text(filename == nil
-                                 ? ".tribe or .tribe.enc from tribe-app → Settings"
+                                 ? ".tribe or .tribe.enc from tribe-twitter-app → Settings"
                                  : (isEncrypted ? "Enter password below" : "Ready to import"))
                                 .font(.caption)
                                 .foregroundStyle(Theme.textSecondary)

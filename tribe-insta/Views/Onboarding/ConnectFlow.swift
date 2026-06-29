@@ -166,7 +166,7 @@ private struct IdentityChoiceView: View {
                 identityRow(
                     icon: "qrcode.viewfinder",
                     title: "Scan QR to sign in",
-                    subtitle: "Pair from tribe-app → Wallet → Pair phone"
+                    subtitle: "Pair from tribe-twitter-app → Wallet → Pair phone"
                 ) { path.append(ConnectFlow.Step.qrLogin) }
 
                 identityRow(
@@ -184,14 +184,14 @@ private struct IdentityChoiceView: View {
                 identityRow(
                     icon: "square.and.arrow.down",
                     title: "Import TID + app key",
-                    subtitle: "Paste credentials from tribe-app"
+                    subtitle: "Paste credentials from tribe-twitter-app"
                 ) { path.append(ConnectFlow.Step.importKey) }
 
                 identityRow(
                     icon: "doc.badge.arrow.up",
                     iconTint: Theme.primary,
                     title: "Restore from backup",
-                    subtitle: "Open a .tribe / .tribe.enc file from tribe-app"
+                    subtitle: "Open a .tribe / .tribe.enc file from tribe-twitter-app"
                 ) { path.append(ConnectFlow.Step.restoreBackup) }
             }
         }
