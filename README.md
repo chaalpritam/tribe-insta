@@ -1,6 +1,6 @@
 # tribe-insta
 
-Native SwiftUI iOS client for the [TribeEco](https://github.com/chaalpritam/TribeEco) decentralized social protocol — Instagram-shaped surface (photo grid, stories, reels, profile-first navigation) on the same hub + envelope format as [`tribe-ios`](https://github.com/chaalpritam/tribe-ios).
+Native SwiftUI iOS client for the [TribeEco](https://github.com/chaalpritam/TribeEco) decentralized social protocol — Instagram-shaped surface (photo grid, stories, reels, profile-first navigation) on the same hub + envelope format as [`tribe-twitter`](https://github.com/chaalpritam/tribe-twitter).
 
 ## Status
 
@@ -75,7 +75,7 @@ Part of the [TribeEco](https://github.com/chaalpritam/TribeEco) monorepo. Clone 
 | [tribe-er-server](../tribe-er-server) | Ephemeral Rollup sequencer — instant follows, batched L1 settlement every 10s |
 | [tribe-app](../tribe-app) | Next.js frontend — protocol-first reference client with multi-node failover |
 | [tribeapp.wtf](../tribeapp.wtf) | Consumer-facing web app + landing page at tribeapp.wtf — hyperlocal social built entirely on the protocol |
-| [tribe-ios](../tribe-ios) | Native SwiftUI iOS client (Twitter-shaped) — full read/write against hub + ER, NaCl-box DMs, BLAKE3 + ed25519 signing via Apple CryptoKit |
-| [tribe-insta](../tribe-insta) | Native SwiftUI iOS client (Instagram-shaped) — photo grid, stories, reels; same hub + envelope format as tribe-ios. Scaffolding stage — see `tribe-insta/PLAN.md` |
-| [tribe-core-swift](../tribe-core-swift) | Shared Swift package consumed by tribe-ios + tribe-insta — crypto (BLAKE3, NaCl box, ed25519 signing, BIP39, SolanaHD), backup file format, envelope signer. See `tribe-core-swift/MIGRATION.md` |
+| [tribe-twitter](../tribe-twitter) | Native SwiftUI iOS client (Twitter-shaped) — full read/write against hub + ER, NaCl-box DMs, BLAKE3 + ed25519 signing via Apple CryptoKit |
+| [tribe-insta](../tribe-insta) | Native SwiftUI iOS client (Instagram-shaped) — photo grid, stories, reels; same hub + envelope format as tribe-twitter. Scaffolding stage — see `tribe-insta/PLAN.md` |
+| [tribe-core-swift](../tribe-core-swift) | Shared Swift package consumed by tribe-twitter + tribe-insta — crypto (BLAKE3, NaCl box, ed25519 signing, BIP39, SolanaHD), backup file format, envelope signer. See `tribe-core-swift/MIGRATION.md` |
 | [homebrew-tap](../homebrew-tap) | Homebrew formulas: `brew install tribe` (hub + ER) and `brew install tribe-app` (demo UI) |

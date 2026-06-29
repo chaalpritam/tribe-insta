@@ -4,7 +4,7 @@ import Foundation
 /// network goes through `POST /v1/submit` carrying a signed envelope
 /// (or a dedicated route like `/v1/upload`, `/v1/dm/send`, etc.).
 ///
-/// Trimmed port from tribe-ios — keeps only what an IG-shaped client
+/// Trimmed port from tribe-twitter — keeps only what an IG-shaped client
 /// needs: media upload, post create/delete, reply (via parent_hash),
 /// like / unlike, bookmark / unbookmark. Skips retweets, polls,
 /// events, tasks, crowdfunds, off-chain tips, DMs, channel
@@ -222,7 +222,7 @@ extension HubClient {
 
     /// REACTION subtypes recognized by the hub. tribe-insta only uses
     /// `like` (mapped from the heart button) — `retweet` exists in
-    /// tribe-ios but doesn't have an IG-shaped surface here.
+    /// tribe-twitter but doesn't have an IG-shaped surface here.
     ///
     /// Note: REACTION_REMOVE on the hub clears EVERY reaction the user
     /// has on a target regardless of subtype, but in this client only
@@ -363,7 +363,7 @@ extension HubClient {
 }
 
 private extension String {
-    /// Mirror of tribe-ios's numericIfFitsInt — hub serializes BIGINT
+    /// Mirror of tribe-twitter's numericIfFitsInt — hub serializes BIGINT
     /// TIDs as numbers when in safe range and strings otherwise.
     func numericIfFitsInt() -> Any {
         if let n = Int64(self), abs(n) < 9_007_199_254_740_992 {

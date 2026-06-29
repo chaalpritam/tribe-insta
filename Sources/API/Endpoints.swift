@@ -1,7 +1,7 @@
 import Foundation
 
 /// Read-only mirror of the tribe-hub endpoints tribe-insta needs.
-/// Mostly a port of `tribe-ios/Sources/API/Endpoints.swift`, with two
+/// Mostly a port of `tribe-twitter/Sources/API/Endpoints.swift`, with two
 /// trims:
 ///
 /// - `User` renamed to `HubUser` everywhere to avoid clashing with the

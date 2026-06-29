@@ -4,7 +4,7 @@ import Foundation
 /// Used by InteractionCache to populate the heart and bookmark icons
 /// on every visible post without hitting the hub once per card.
 ///
-/// Trimmed port from tribe-ios — drops `fetchMyPollVote` and
+/// Trimmed port from tribe-twitter — drops `fetchMyPollVote` and
 /// `fetchMyEventRSVP` since polls and events aren't IG-shaped
 /// surfaces.
 public extension HubClient {

@@ -17,7 +17,7 @@ import SwiftUI
 ///   - `api`: a HubClient configured to the current hubBaseURL.
 ///   - `er`: an ERClient pointed at the ER sequencer.
 ///
-/// Trimmed from tribe-ios's AppState: no DM key (no DMs in the
+/// Trimmed from tribe-twitter's AppState: no DM key (no DMs in the
 /// IG-shaped surface yet), no interaction cache (no writes in Phase
 /// 1), no on-chain tip stats cache, no user avatar cache. Add those
 /// back as the matching tabs land.

@@ -10,7 +10,7 @@ import SwiftUI
 /// Loaded lazily the first time a card tries to render with the user's
 /// TID known. Re-loadable via `refresh()` after sign-in or pull-to-refresh.
 ///
-/// Trimmed from tribe-ios: no retweet set (IG-shaped client doesn't
+/// Trimmed from tribe-twitter: no retweet set (IG-shaped client doesn't
 /// retweet).
 @MainActor
 final class InteractionCache: ObservableObject {

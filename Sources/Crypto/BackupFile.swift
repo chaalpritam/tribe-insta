@@ -2,10 +2,10 @@ import Foundation
 import CryptoKit
 import CommonCrypto
 
-/// Versioned account backup — import-only port from tribe-ios.
+/// Versioned account backup — import-only port from tribe-twitter.
 /// Byte-for-byte compatible with tribe-app's `.tribe` / `.tribe.enc`
 /// format (see `tribe-app/src/lib/backup.ts`), so files exported from
-/// tribe-app or tribe-ios can be imported here.
+/// tribe-app or tribe-twitter can be imported here.
 ///
 /// Plain form: pretty-printed JSON of this struct.
 ///
@@ -14,7 +14,7 @@ import CommonCrypto
 /// layout is base64( salt[16] || nonce[12] || ciphertext || tag[16] )
 /// — matching the layout `window.crypto.subtle` produces on the web.
 ///
-/// Import and export are byte-compatible with tribe-app / tribe-ios.
+/// Import and export are byte-compatible with tribe-app / tribe-twitter.
 struct BackupFile: Codable, Equatable {
     let version: Int
     let timestamp: Int64

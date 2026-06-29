@@ -1,7 +1,7 @@
 # tribe-insta — integration plan
 
 Instagram-shaped iOS client for the TribeEco decentralized social protocol.
-Sister app to `tribe-ios` (Twitter-shaped). Same hub, same envelope format,
+Sister app to `tribe-twitter` (Twitter-shaped). Same hub, same envelope format,
 same identity — different surface.
 
 ## Where we are today
@@ -35,9 +35,9 @@ The protocol already does ~90% of what an Instagram-shaped client needs:
 
 **Goal:** Replace `MockData` with real hub fetches. App reads everything from
 a running `tribe-hub`. No writes yet. Onboarding accepts an existing TID +
-backup file from `tribe-app` or `tribe-ios` — no new identity creation flow.
+backup file from `tribe-app` or `tribe-twitter` — no new identity creation flow.
 
-**Ports from `tribe-ios`** (verbatim copies for now — extracted to a shared
+**Ports from `tribe-twitter`** (verbatim copies for now — extracted to a shared
 package in Phase 4):
 
 - `Sources/Crypto/` — all of it (`Blake3`, `AppKey`, `Keychain`, `BIP39`,
@@ -58,7 +58,7 @@ package in Phase 4):
     from `/v1/followers/:tid` and `/v1/following/:tid`)
 - `Views/Onboarding/OnboardingView.swift` — paste TID + paste backup file
   (BIP39 import). No seed-phrase entry UI in Phase 1 to keep scope down —
-  user creates on tribe-app / tribe-ios first, exports backup, imports here.
+  user creates on tribe-app / tribe-twitter first, exports backup, imports here.
 - Wire each tab to the service:
   - `FeedView` → `fetchFeedPage()` filtered to tweets with image embeds
   - `ProfileView` → `fetchUser(tid)` + `fetchTweets(tid)` filtered to images,
@@ -69,7 +69,7 @@ package in Phase 4):
   - `CreatePostView` → unchanged (writes land in Phase 2)
 
 **Onboarding shortcut:** Settings sheet (gear icon on Profile) lets the user
-paste hub URL + TID + backup file in one screen. Matches `tribe-ios`'s
+paste hub URL + TID + backup file in one screen. Matches `tribe-twitter`'s
 settings flow.
 
 **Test path:**
@@ -79,7 +79,7 @@ settings flow.
 3. Export backup file from tribe-app
 4. Open tribe-insta, paste TID + import backup, set hub URL → see real feed
 
-**Estimated size:** ~15 files, ~1,500 LOC (mostly verbatim ports from tribe-ios).
+**Estimated size:** ~15 files, ~1,500 LOC (mostly verbatim ports from tribe-twitter).
 
 ---
 
@@ -87,7 +87,7 @@ settings flow.
 
 **Goal:** Like, save, comment, create-post, follow.
 
-**Ports from tribe-ios:**
+**Ports from tribe-twitter:**
 
 - `Sources/API/Publish.swift` (the parts insta uses — drop DM groups, tasks,
   crowdfunds, polls, events for now)
@@ -219,17 +219,17 @@ Once hub + SDK changes ship:
 
 ## Phase 4 — extract `TribeCore` Swift package
 
-By the time Phase 1+2 land, `tribe-ios` and `tribe-insta` are both
+By the time Phase 1+2 land, `tribe-twitter` and `tribe-insta` are both
 maintaining a copy of `Sources/Crypto/`, `HubClient`, `MessageSigner`, etc.
 First Blake3 bug fix proves that's untenable.
 
 **Move:**
 
-- Create `tribe-core-swift/` repo (or `tribe-ios/TribeCore/` as a local SPM
+- Create `tribe-core-swift/` repo (or `tribe-twitter/TribeCore/` as a local SPM
   package consumed by both apps via path reference)
 - Public API: `HubClient`, `ERClient`, `AppKey`, `DMKey`, `Blake3`,
   `MessageSigner`, all protocol models, `KeychainStore`
-- Both `tribe-ios` and `tribe-insta` declare it as a `Package.swift`
+- Both `tribe-twitter` and `tribe-insta` declare it as a `Package.swift`
   dependency and delete their copies
 
 **Why wait until Phase 4 and not do it first:** we'll only know the right
@@ -247,14 +247,14 @@ Currently it's an untracked dir in the monorepo. Two-step gate:
 
 1. **Create a GitHub repo** `chaalpritam/tribe-insta`. Initial commit:
    current `tribe-insta/` contents + a `.gitignore` for Xcode artifacts +
-   `Project.yml` mirroring `tribe-ios/Project.yml` shape + this `PLAN.md` +
+   `Project.yml` mirroring `tribe-twitter/Project.yml` shape + this `PLAN.md` +
    a stub `README.md`.
 2. **Register as a submodule** in the TribeEco monorepo:
    - `.gitmodules` entry pointing at the new repo
    - `git submodule add` against HTTPS for unauthenticated clones; push
      remote uses `chaalpritam` SSH (matches the rest of the monorepo
      convention from CLAUDE.md)
-   - update root `Readme.md` to list `tribe-insta` alongside `tribe-ios`
+   - update root `Readme.md` to list `tribe-insta` alongside `tribe-twitter`
    - update root `CLAUDE.md` architecture section
 
 This is a precondition for any "let's commit" step — without it, work in
@@ -275,7 +275,7 @@ This is a precondition for any "let's commit" step — without it, work in
 | **tribe-app** | 3 | Stories tray, /reels page, viewer with seen-by |
 | **tribe-protocol** | — | No changes for v1 (off-chain envelopes only) |
 | **tribe-er-server** | 5 (later) | Optional: batch REACTION through ER for reels engagement |
-| **tribe-ios + tribe-insta** | 4 | Extract `TribeCore` Swift package |
+| **tribe-twitter + tribe-insta** | 4 | Extract `TribeCore` Swift package |
 | **homebrew-tap** | optional | `tribe-insta` formula (low priority — TestFlight is the real distribution path) |
 | **TribeEco** (root) | 0 | `.gitmodules` + Readme + CLAUDE.md updates |
 
@@ -296,12 +296,12 @@ This is a precondition for any "let's commit" step — without it, work in
    scope for the first cut — start with hub-local storage and add the S3
    path when the demo actually breaks.
 
-4. **Onboarding parity with tribe-ios?** tribe-ios supports seed-phrase
+4. **Onboarding parity with tribe-twitter?** tribe-twitter supports seed-phrase
    import, backup-file import, QR pair-from-desktop, and create-new-identity.
    tribe-insta Phase 1 only ships backup-file import — others come in
    Phase 2 or later. Acceptable tradeoff?
 
-5. **Bottom-nav style?** tribe-ios uses a black rounded-pill custom nav
+5. **Bottom-nav style?** tribe-twitter uses a black rounded-pill custom nav
    from `tribeapp.wtf`. tribe-insta currently uses stock SwiftUI `TabView`.
    Recommend keeping the stock TabView for tribe-insta — it's the IG-native
-   look, and the visual differentiation from tribe-ios is the whole point.
+   look, and the visual differentiation from tribe-twitter is the whole point.

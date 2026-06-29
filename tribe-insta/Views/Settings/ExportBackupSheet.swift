@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Export `.tribe` / `.tribe.enc` compatible with tribe-app and tribe-ios.
+/// Export `.tribe` / `.tribe.enc` compatible with tribe-app and tribe-twitter.
 struct ExportBackupSheet: View {
     @EnvironmentObject private var state: AppState
     @Environment(\.dismiss) private var dismiss

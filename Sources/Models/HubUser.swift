@@ -2,7 +2,7 @@ import Foundation
 
 /// One row from `/v1/users` or a single fetch via `/v1/user/:tid`.
 ///
-/// Renamed from `User` in the tribe-ios port to avoid a name clash
+/// Renamed from `User` in the tribe-twitter port to avoid a name clash
 /// with `tribe-insta/Models/Models.swift`'s view-model `User` struct
 /// (which carries IG-shaped fields like `postsCount`, `isVerified`,
 /// `isFollowing` that the protocol doesn't surface directly).

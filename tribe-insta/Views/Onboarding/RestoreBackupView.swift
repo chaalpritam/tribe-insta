@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 /// Import a `.tribe` / `.tribe.enc` backup exported from tribe-app
-/// or tribe-ios. Complements QR / seed / manual app-key paths.
+/// or tribe-twitter. Complements QR / seed / manual app-key paths.
 struct RestoreBackupView: View {
     @EnvironmentObject private var app: AppState
 
@@ -17,7 +17,7 @@ struct RestoreBackupView: View {
     var body: some View {
         Form {
             Section {
-                Text("Pick a backup file you've exported from tribe-app or tribe-ios. Your seed never leaves this device.")
+                Text("Pick a backup file you've exported from tribe-app or tribe-twitter. Your seed never leaves this device.")
                     .font(.subheadline)
                     .foregroundStyle(Theme.textSecondary)
             }
