@@ -53,8 +53,11 @@ struct ProfileView: View {
                             .padding(40)
                         }
 
-                        Section(header: tabSelector) {
+                        Section {
                             tabContent
+                                .frame(maxWidth: .infinity)
+                        } header: {
+                            tabSelector
                         }
                     }
                 }
@@ -82,6 +85,11 @@ struct ProfileView: View {
         }
         .onChange(of: service.feedRevision) { _, _ in
             Task { await load() }
+        }
+        .onChange(of: reels.isEmpty) { _, isEmpty in
+            if isEmpty, selectedTab == .reels {
+                selectedTab = .grid
+            }
         }
     }
 
@@ -119,28 +127,7 @@ struct ProfileView: View {
     }
 
     private var tabSelector: some View {
-        HStack(spacing: 0) {
-            tabButton(.grid, system: "square.grid.3x3")
-            tabButton(.reels, system: "play.square")
-            tabButton(.tagged, system: "person.crop.square")
-        }
-        .background(.bar)
-    }
-
-    private func tabButton(_ tab: ProfileTab, system: String) -> some View {
-        Button { selectedTab = tab } label: {
-            VStack(spacing: 6) {
-                Image(systemName: system)
-                    .font(.title3)
-                    .foregroundStyle(selectedTab == tab ? .primary : .secondary)
-                Rectangle()
-                    .fill(selectedTab == tab ? Color.primary : Color.clear)
-                    .frame(height: 1)
-            }
-            .padding(.top, 8)
-            .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.plain)
+        ProfileTabSelector(selection: $selectedTab, showReels: !reels.isEmpty)
     }
 
     @MainActor
@@ -287,27 +274,18 @@ private struct ProfileHeader: View {
 struct ProfilePostsGrid: View {
     let posts: [Post]
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 3)
-
     var body: some View {
         if posts.isEmpty {
-            VStack(spacing: 8) {
-                Image(systemName: "camera").font(.title2).foregroundStyle(.secondary)
-                Text("No posts yet")
-                    .font(.headline)
-                Text("Share a photo from the + tab.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            .padding(.top, 40)
-            .padding(.bottom, 40)
-            .frame(maxWidth: .infinity)
+            profileGridEmptyState(
+                systemImage: "camera",
+                title: "No posts yet",
+                subtitle: "Share a photo from the + tab."
+            )
         } else {
-            LazyVGrid(columns: columns, spacing: 2) {
+            ProfileMediaGrid {
                 ForEach(posts) { post in
                     NavigationLink(value: post) {
-                        RemoteImage(url: post.imageURLs.first)
-                            .aspectRatio(1, contentMode: .fill)
-                            .clipped()
+                        ProfilePhotoCell(url: post.imageURLs.first)
                     }
                     .buttonStyle(.plain)
                 }
@@ -319,26 +297,12 @@ struct ProfilePostsGrid: View {
 struct ProfileReelsGrid: View {
     let reels: [Reel]
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 3)
-
     var body: some View {
-        if reels.isEmpty {
-            VStack(spacing: 8) {
-                Image(systemName: "play.square")
-                    .font(.title2)
-                    .foregroundStyle(.secondary)
-                Text("No reels yet")
-                    .font(.headline)
-            }
-            .padding(.vertical, 40)
-            .frame(maxWidth: .infinity)
-        } else {
-            LazyVGrid(columns: columns, spacing: 2) {
-                ForEach(reels) { reel in
+        ProfileMediaGrid {
+            ForEach(reels) { reel in
+                ProfileGridCell {
                     ZStack {
-                        RemoteImage(url: reel.thumbnailURL ?? reel.videoURL)
-                            .aspectRatio(9 / 16, contentMode: .fill)
-                            .clipped()
+                        RemoteImage(url: reel.thumbnailURL ?? reel.videoURL, contentMode: .fill)
                         Image(systemName: "play.fill")
                             .font(.title3)
                             .foregroundStyle(.white)
@@ -348,6 +312,121 @@ struct ProfileReelsGrid: View {
             }
         }
     }
+}
+
+/// Pinned tab bar under the profile header. Reels tab appears only when the user has reels.
+struct ProfileTabSelector: View {
+    @Binding var selection: ProfileView.ProfileTab
+    let showReels: Bool
+
+    var body: some View {
+        HStack(spacing: 0) {
+            tabButton(.grid, systemImage: "square.grid.3x3")
+            if showReels {
+                tabButton(.reels, systemImage: "play.rectangle.on.rectangle")
+            }
+            tabButton(.tagged, systemImage: "person.crop.square")
+        }
+        .background(.bar)
+    }
+
+    private func tabButton(_ tab: ProfileView.ProfileTab, systemImage: String) -> some View {
+        Button { selection = tab } label: {
+            VStack(spacing: 0) {
+                Image(systemName: systemImage)
+                    .font(.body)
+                    .symbolVariant(selection == tab ? .fill : .none)
+                    .foregroundStyle(selection == tab ? .primary : .secondary)
+                    .frame(height: 24)
+                Rectangle()
+                    .fill(selection == tab ? Color.primary : Color.clear)
+                    .frame(height: 1)
+            }
+            .padding(.top, 10)
+            .padding(.bottom, 2)
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel(for: tab))
+        .accessibilityAddTraits(selection == tab ? .isSelected : [])
+    }
+
+    private func accessibilityLabel(for tab: ProfileView.ProfileTab) -> String {
+        switch tab {
+        case .grid: return "Posts"
+        case .reels: return "Reels"
+        case .tagged: return "Tagged"
+        }
+    }
+}
+
+// MARK: - Shared profile grid layout (IG 3-column square grid, 1pt gutters)
+
+private enum ProfileGridMetrics {
+    static let spacing: CGFloat = 1
+    static let columns = Array(
+        repeating: GridItem(.flexible(), spacing: spacing),
+        count: 3
+    )
+}
+
+private struct ProfileMediaGrid<Content: View>: View {
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        LazyVGrid(columns: ProfileGridMetrics.columns, spacing: ProfileGridMetrics.spacing) {
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// Square IG profile cell with the photo cropped to fill.
+private struct ProfilePhotoCell: View {
+    let url: URL?
+
+    var body: some View {
+        ProfileGridCell {
+            RemoteImage(url: url, contentMode: .fill)
+        }
+    }
+}
+
+/// Fixed 1:1 frame so every column lines up across posts and reels tabs.
+private struct ProfileGridCell<Content: View>: View {
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        GeometryReader { proxy in
+            let side = proxy.size.width
+            content()
+                .frame(width: side, height: side)
+                .clipped()
+        }
+        .aspectRatio(1, contentMode: .fit)
+        .contentShape(Rectangle())
+    }
+}
+
+private func profileGridEmptyState(
+    systemImage: String,
+    title: String,
+    subtitle: String?
+) -> some View {
+    VStack(spacing: 8) {
+        Image(systemName: systemImage)
+            .font(.title2)
+            .foregroundStyle(.secondary)
+        Text(title)
+            .font(.headline)
+        if let subtitle {
+            Text(subtitle)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+    .padding(.vertical, 40)
+    .frame(maxWidth: .infinity)
 }
 
 #Preview {

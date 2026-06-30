@@ -41,6 +41,7 @@ struct UserProfileView: View {
                     }
                     tabSelector
                     tabContent
+                        .frame(maxWidth: .infinity)
                 }
             }
             .refreshable { await load() }
@@ -72,31 +73,15 @@ struct UserProfileView: View {
             FollowListView(tid: tid, mode: mode)
         }
         .task(id: tid) { await load() }
+        .onChange(of: reels.isEmpty) { _, isEmpty in
+            if isEmpty, selectedTab == .reels {
+                selectedTab = .grid
+            }
+        }
     }
 
     private var tabSelector: some View {
-        HStack(spacing: 0) {
-            tabButton(.grid, system: "square.grid.3x3")
-            tabButton(.reels, system: "play.square")
-            tabButton(.tagged, system: "person.crop.square")
-        }
-        .background(.bar)
-    }
-
-    private func tabButton(_ tab: ProfileView.ProfileTab, system: String) -> some View {
-        Button { selectedTab = tab } label: {
-            VStack(spacing: 6) {
-                Image(systemName: system)
-                    .font(.title3)
-                    .foregroundStyle(selectedTab == tab ? .primary : .secondary)
-                Rectangle()
-                    .fill(selectedTab == tab ? Color.primary : Color.clear)
-                    .frame(height: 1)
-            }
-            .padding(.top, 8)
-            .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.plain)
+        ProfileTabSelector(selection: $selectedTab, showReels: !reels.isEmpty)
     }
 
     @ViewBuilder
