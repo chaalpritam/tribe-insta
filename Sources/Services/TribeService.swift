@@ -39,13 +39,10 @@ final class TribeService: ObservableObject {
 
     // MARK: - Feed
 
-    /// Photo-only home feed. `/v1/feed` returns every tweet kind; we
-    /// drop the ones without image embeds since they're not IG-shaped
-    /// content. The hub doesn't yet expose a `post_kind` discriminator
-    /// (see PLAN.md Phase 3) — once it does, this becomes a server-side
-    /// filter and we stop downloading text-only rows.
+    /// Photo-only home feed. Hub filters with `?post_kind=photo` so
+    /// text-only tweets from tribe-twitter users never cross the wire.
     func feed(limit: Int = 30) async throws -> [Post] {
-        let page = try await api.fetchFeedPage(limit: limit)
+        let page = try await api.fetchFeedPage(limit: limit, postKind: "photo")
         await cacheUsers(for: page.tweets)
         var posts = page.tweets.compactMap(mapToPost)
         posts = await enrichFollowing(on: posts)
@@ -55,7 +52,7 @@ final class TribeService: ObservableObject {
     /// Cursor-paginated photo feed. Returns the next cursor when more
     /// pages exist.
     func feedPage(cursor: String? = nil, limit: Int = 20) async throws -> (posts: [Post], nextCursor: String?) {
-        let page = try await api.fetchFeedPage(cursor: cursor, limit: limit)
+        let page = try await api.fetchFeedPage(cursor: cursor, limit: limit, postKind: "photo")
         await cacheUsers(for: page.tweets)
         var posts = page.tweets.compactMap(mapToPost)
         posts = await enrichFollowing(on: posts)
@@ -601,7 +598,8 @@ final class TribeService: ObservableObject {
             tid: tid,
             parentHash: nil,
             channelId: nil,
-            embeds: mediaRefs
+            embeds: mediaRefs,
+            postKind: "photo"
         )
         feedRevision &+= 1
         return hash

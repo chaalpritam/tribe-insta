@@ -1,9 +1,7 @@
 import SwiftUI
 
-/// Photo-only home feed. Pulls `/v1/feed` through TribeService and
-/// renders any tweet whose `embeds` carry image hashes. Stories are
-/// hidden in Phase 1 — the protocol doesn't have a stories envelope
-/// yet (see PLAN.md Phase 3); the bar comes back when STORY_ADD ships.
+/// Photo-only home feed. Pulls `/v1/feed?post_kind=photo` through
+/// TribeService so the hub skips text-only tweets server-side.
 struct FeedView: View {
     @EnvironmentObject private var service: TribeService
     @EnvironmentObject private var state: AppState

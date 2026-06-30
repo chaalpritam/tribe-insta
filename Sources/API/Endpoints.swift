@@ -30,9 +30,14 @@ public extension HubClient {
     /// page; pass back the response's `cursor` to walk further into
     /// history. The hub serves a full page (default 20 rows) on each
     /// hit and returns a nil cursor once the tail is reached.
-    func fetchFeedPage(cursor: String? = nil, limit: Int = 20) async throws -> FeedPage {
+    func fetchFeedPage(
+        cursor: String? = nil,
+        limit: Int = 20,
+        postKind: String? = nil
+    ) async throws -> FeedPage {
         var query: [String: String] = ["limit": String(limit)]
         if let cursor { query["cursor"] = cursor }
+        if let postKind, !postKind.isEmpty { query["post_kind"] = postKind }
         return try await get("v1/feed", query: query)
     }
 
