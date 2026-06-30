@@ -62,5 +62,5 @@ Then on each tester’s home Mac (or your seed): hubs peer via `PEERS` / `tribe 
 ## Not in this build
 
 - Push notifications (badges poll every 60s while the app is open)
-- Follow/unfollow writes (use tribe-twitter-app + custody key)
+- Follow/unfollow writes (import backup or seed phrase to hold custody key)
 - Instagram Live

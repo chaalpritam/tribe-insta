@@ -1,14 +1,8 @@
 import Foundation
+import TribeCore
 
-/// Read-only client for the ephemeral-rollup sequencer. Surfaces
-/// instant follow-graph state (with on-chain L1 settlement happening
-/// behind the scenes every ~10 s) so the iOS UI can render Follow /
-/// Following / Pending without waiting for the next L1 confirmation.
-///
-/// Writes (POST /v1/follow, /v1/unfollow) require a signature from the
-/// user's Solana custody key, which the iOS app doesn't hold today —
-/// the Follow button surfaces a "use tribe-twitter-app" notice rather than
-/// pretending to publish.
+/// Client for the ephemeral-rollup sequencer. Surfaces instant
+/// follow-graph state and submits custody-signed follow/unfollow ops.
 public final class ERClient {
     public let baseURL: URL
     private let session: URLSession
@@ -49,6 +43,68 @@ public final class ERClient {
         }
         return try? JSONDecoder().decode(ERProfile.self, from: data)
     }
+
+    /// Submit a custody-signed follow to the ER sequencer.
+    public func follow(
+        followerTID: String,
+        followingTID: String,
+        custody: CustodyKey
+    ) async throws {
+        try await submitOperation("follow", followerTID: followerTID, followingTID: followingTID, custody: custody)
+    }
+
+    /// Submit a custody-signed unfollow to the ER sequencer.
+    public func unfollow(
+        followerTID: String,
+        followingTID: String,
+        custody: CustodyKey
+    ) async throws {
+        try await submitOperation("unfollow", followerTID: followerTID, followingTID: followingTID, custody: custody)
+    }
+
+    private func submitOperation(
+        _ opType: String,
+        followerTID: String,
+        followingTID: String,
+        custody: CustodyKey
+    ) async throws {
+        let timestamp = Int(Date().timeIntervalSince1970)
+        let message = "tribe-er:\(opType):\(followerTID):\(followingTID):\(timestamp)"
+        let messageBytes = Data(message.utf8)
+        let signature = try custody.sign(messageBytes)
+        let body: [String: Any] = [
+            "followerTid": followerTID,
+            "followingTid": followingTID,
+            "custodyPubkey": custody.address,
+            "signature": signature.base64EncodedString(),
+            "timestamp": timestamp,
+        ]
+        let url = baseURL.appendingPathComponent("v1/\(opType)")
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONSerialization.data(withJSONObject: body)
+        req.timeoutInterval = 15
+        let (data, response) = try await session.data(for: req)
+        guard let http = response as? HTTPURLResponse else {
+            throw HubError.invalidResponse
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            let detail = String(data: data, encoding: .utf8) ?? "HTTP \(http.statusCode)"
+            throw ERError.operationFailed(detail)
+        }
+    }
+}
+
+public enum ERError: LocalizedError {
+    case operationFailed(String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .operationFailed(let detail):
+            return "Follow update failed: \(detail)"
+        }
+    }
 }
 
 public struct ERLinkStatus: Decodable {
@@ -56,7 +112,10 @@ public struct ERLinkStatus: Decodable {
     public let status: String
 
     public var isFollowing: Bool { exists && status == "active" }
-    public var isPending: Bool { exists && status == "pending_follow" }
+    public var isPending: Bool {
+        exists && (status == "pending_follow" || status == "pending_unfollow")
+    }
+    public var isPendingUnfollow: Bool { exists && status == "pending_unfollow" }
 }
 
 public struct ERProfile: Decodable {

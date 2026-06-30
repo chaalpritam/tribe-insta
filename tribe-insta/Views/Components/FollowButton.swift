@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Read-only follow indicator backed by the ER sequencer. Tapping
-/// explains that follows must be signed from tribe-twitter-app (custody key).
+/// Follow / unfollow backed by the ER sequencer. Writes when a custody
+/// key is on device; otherwise explains how to follow from tribe-twitter-app.
 struct FollowButton: View {
     @EnvironmentObject private var state: AppState
     let targetTID: String
@@ -9,16 +9,18 @@ struct FollowButton: View {
     @State private var status: ERLinkStatus?
     @State private var loading = false
     @State private var explaining = false
+    @State private var actionError: String?
 
     private var isMe: Bool { targetTID == state.myTID }
     private var following: Bool { status?.isFollowing == true }
     private var pending: Bool { status?.isPending == true }
+    private var canWrite: Bool { state.custodyKey != nil }
 
     var body: some View {
         if isMe {
             EmptyView()
         } else {
-            Button { explaining = true } label: {
+            Button { Task { await onTap() } } label: {
                 HStack(spacing: 6) {
                     if loading {
                         ProgressView().controlSize(.mini)
@@ -38,10 +40,19 @@ struct FollowButton: View {
                 .background(Capsule().fill(following ? Theme.primary.opacity(0.12) : Theme.primary))
             }
             .buttonStyle(.plain)
+            .disabled(loading || pending)
             .task(id: targetTID) { await refresh() }
             .sheet(isPresented: $explaining) {
                 FollowExplainerSheet(following: following)
                     .presentationDetents([.medium])
+            }
+            .alert("Couldn't update follow", isPresented: Binding(
+                get: { actionError != nil },
+                set: { if !$0 { actionError = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(actionError ?? "")
             }
         }
     }
@@ -50,6 +61,34 @@ struct FollowButton: View {
         if pending { return "Pending" }
         if following { return "Following" }
         return "Follow"
+    }
+
+    @MainActor
+    private func onTap() async {
+        guard canWrite, let me = state.myTID, let custody = state.custodyKey else {
+            explaining = true
+            return
+        }
+        loading = true
+        defer { loading = false }
+        do {
+            if following {
+                try await state.er.unfollow(
+                    followerTID: me,
+                    followingTID: targetTID,
+                    custody: custody
+                )
+            } else {
+                try await state.er.follow(
+                    followerTID: me,
+                    followingTID: targetTID,
+                    custody: custody
+                )
+            }
+            await refresh()
+        } catch {
+            actionError = error.localizedDescription
+        }
     }
 
     @MainActor
@@ -73,12 +112,10 @@ private struct FollowExplainerSheet: View {
                     .foregroundStyle(.tint)
                     .padding(.top, 24)
 
-                Text(following ? "Unfollow on tribe-twitter-app" : "Follow on tribe-twitter-app")
+                Text(following ? "Unfollow needs your custody key" : "Follow needs your custody key")
                     .font(.title3.bold())
 
-                Text(following
-                     ? "Unfollows are signed by your Solana custody key. Open tribe-twitter-app, find this profile, and tap Unfollow. The ER sequencer updates here within a second."
-                     : "Follows are written to the ER sequencer with your Solana custody key. Open tribe-twitter-app on desktop to follow — this app will show Following once the sequencer confirms."
+                Text("Import a backup file or connect with your seed phrase so this device holds your Solana custody key. You can also follow from tribe-twitter-app on desktop."
                 )
                 .font(.subheadline)
                 .foregroundStyle(.secondary)

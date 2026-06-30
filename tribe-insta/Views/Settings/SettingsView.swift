@@ -93,7 +93,7 @@ struct SettingsView: View {
                         dismiss()
                     }
                 } footer: {
-                    Text("Sign out wipes the app key and TID from this device. Export a backup first. Follows and unfollows still require tribe-twitter-app (Solana custody key).")
+                    Text("Sign out wipes the app key and TID from this device. Export a backup first. Follows need your custody key — import a backup or connect with your seed phrase.")
                         .font(.caption2)
                 }
             }

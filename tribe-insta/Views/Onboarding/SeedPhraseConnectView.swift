@@ -120,12 +120,15 @@ struct SeedPhraseConnectView: View {
         defer { adopting = false }
         error = nil
         do {
+            let (address, privateKey) = try SolanaHD.keypair(fromMnemonic: phraseInput)
             let key = try AppKey.restore(seedBase64: appKeyInput)
+            try CustodyKey.save(seed: privateKey, address: address)
             try await app.completeConnect(
                 tid: resolved.user.tid,
                 appKey: key,
-                walletAddress: resolved.address
+                walletAddress: address
             )
+            app.refreshCustodyKey()
         } catch {
             self.error = error.localizedDescription
         }

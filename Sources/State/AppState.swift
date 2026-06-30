@@ -68,6 +68,10 @@ final class AppState: ObservableObject {
     @Published var myAvatarURL: URL?
     @Published var walletAddress: String?
 
+    /// Solana custody key for ER follow/unfollow. Loaded from the
+    /// Keychain when the user imported a backup or connected via seed phrase.
+    @Published private(set) var custodyKey: CustodyKey?
+
     private(set) var api: HubClient
     private(set) var er: ERClient
     /// Per-session liked / bookmarked set. Lazy-loaded on first
@@ -117,6 +121,7 @@ final class AppState: ObservableObject {
         self.interactions = InteractionCache()
         self.restrictions = UserRestrictionsStore()
         self.interactions.attach(to: self)
+        self.custodyKey = try? CustodyKey.load()
 
         // Best-effort fetch of profile metadata so the UI shows the
         // right name / wallet on first paint after a relaunch.
@@ -158,9 +163,11 @@ final class AppState: ObservableObject {
     /// re-enter it on a re-onboard. Routes back to onboarding.
     func signOut() {
         try? KeychainStore.delete(.appKeySeed)
+        try? CustodyKey.clear()
         DMKey.clearKeychain()
         appKey = nil
         dmKey = nil
+        custodyKey = nil
         myTID = nil
         myUsername = nil
         myAvatarURL = nil
@@ -186,6 +193,11 @@ final class AppState: ObservableObject {
             )
         }
         return key
+    }
+
+    /// Reload custody key after backup import or seed-phrase connect.
+    func refreshCustodyKey() {
+        custodyKey = try? CustodyKey.load()
     }
 
     func refreshIdentityMetadata() async {

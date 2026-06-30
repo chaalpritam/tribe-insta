@@ -151,6 +151,7 @@ struct RestoreBackupView: View {
                 appKey: result.appKey,
                 walletAddress: result.walletAddress
             )
+            app.refreshCustodyKey()
         } catch let err as BackupError {
             error = err.errorDescription ?? "Could not import backup."
         } catch let err {
