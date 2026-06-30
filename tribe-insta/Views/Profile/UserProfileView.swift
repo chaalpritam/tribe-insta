@@ -185,13 +185,11 @@ struct UserProfileView: View {
         isLoading = true
         errorMessage = nil
         do {
-            async let profileResult = service.profile(tid: tid)
-            async let tagged = service.taggedPosts(tid: tid)
-            let result = try await profileResult
+            let result = try await service.profile(tid: tid)
             user = result.user
             posts = result.posts
             reels = result.reels
-            taggedPosts = try await tagged
+            taggedPosts = (try? await service.taggedPosts(tid: tid)) ?? []
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -76,7 +76,7 @@ struct ProfileView: View {
         .sheet(isPresented: $showEditProfile) {
             EditProfileView()
         }
-        .task {
+        .task(id: state.myTID) {
             await load()
             await state.refreshBadgeCounts()
         }
@@ -145,18 +145,28 @@ struct ProfileView: View {
 
     @MainActor
     private func load() async {
-        guard let tid = state.myTID else { return }
+        guard let tid = state.myTID else {
+            user = nil
+            posts = []
+            reels = []
+            taggedPosts = []
+            errorMessage = nil
+            isLoading = false
+            return
+        }
         isLoading = true
         errorMessage = nil
         do {
             async let profileResult = service.profile(tid: tid)
-            async let tagged = service.taggedPosts(tid: tid)
             let (u, p, r) = try await profileResult
             user = u
             state.myAvatarURL = u.avatarURL
+            if state.myUsername == nil || state.myUsername?.isEmpty == true {
+                state.myUsername = u.username
+            }
             posts = p
             reels = r
-            taggedPosts = try await tagged
+            taggedPosts = (try? await service.taggedPosts(tid: tid)) ?? []
         } catch {
             errorMessage = error.localizedDescription
         }

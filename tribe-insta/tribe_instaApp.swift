@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct tribe_instaApp: App {
-    @StateObject private var appState = AppState()
+    @StateObject private var appState: AppState
+    @StateObject private var tribeService: TribeService
 
     init() {
+        let state = AppState()
+        _appState = StateObject(wrappedValue: state)
+        _tribeService = StateObject(wrappedValue: TribeService(state: state))
         ImageCache.configureURLCache()
         TabBarAppearance.apply()
     }
@@ -21,7 +25,7 @@ struct tribe_instaApp: App {
             ContentView()
                 .environmentObject(appState)
                 .environmentObject(appState.interactions)
-                .environmentObject(TribeService(state: appState))
+                .environmentObject(tribeService)
                 .onOpenURL { url in
                     appState.openDeepLink(url)
                 }
