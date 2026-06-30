@@ -52,12 +52,12 @@ On a physical device, set the hub URL to your Mac's LAN IP (`tribe share`) in on
 
 ```
 tribe-insta/          SwiftUI views (tabs, onboarding, components)
-Sources/              Protocol layer (Crypto, API, TribeService, AppState)
-  Crypto/             Blake3, AppKey, BackupFile, NaCl box, BIP39, …
-  API/                HubClient, ERClient, Publish, Endpoints
+Sources/              App layer (TribeService, AppState, Config, utils)
   Services/           TribeService (hub → IG view models)
   State/              AppState, InteractionCache, UserRestrictionsStore
 ```
+
+Protocol wire types and hub clients live in [`tribe-core-swift`](../tribe-core-swift) (`HubClient`, `HubUser`, `Tweet`, …). Import `TribeCore` where needed.
 
 `Mock/MockData.swift` remains for SwiftUI previews only; the app does not use it at runtime when signed in.
 

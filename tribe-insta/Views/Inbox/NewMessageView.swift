@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Pick a user and start a 1:1 DM thread.
 struct NewMessageView: View {

@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import TribeCore
 
 /// Session-scoped cache of "have I liked / bookmarked this post" state.
 /// Hangs off AppState so every PostCardView can ask without refetching,

@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Follow / unfollow backed by the ER sequencer. Writes when a custody
 /// key is on device; otherwise explains how to follow from tribe-twitter-app.

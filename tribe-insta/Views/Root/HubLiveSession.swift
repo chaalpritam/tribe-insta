@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Keeps a hub WebSocket open while the user is signed in so badge
 /// counts and the home feed update without the 60s poll timer.
