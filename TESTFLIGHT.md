@@ -61,6 +61,6 @@ Then on each tester’s home Mac (or your seed): hubs peer via `PEERS` / `tribe 
 
 ## Not in this build
 
-- Push notifications (badges poll every 60s while the app is open)
+- Push notifications (badges also refresh over hub WebSocket while open; 120s poll as fallback)
 - Follow/unfollow writes (import backup or seed phrase to hold custody key)
 - Instagram Live

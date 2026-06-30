@@ -12,6 +12,7 @@ struct ContentView: View {
                 .tint(Theme.primary)
         case .ready:
             RootView()
+                .background { HubLiveSession() }
         }
     }
 }

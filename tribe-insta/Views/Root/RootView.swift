@@ -14,7 +14,7 @@ struct RootView: View {
     @State private var showBackupReminder = false
     @AppStorage("tribe.hasSeenBackupReminder") private var hasSeenBackupReminder = false
 
-    private let badgeTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    private let badgeTimer = Timer.publish(every: 120, on: .main, in: .common).autoconnect()
 
     var body: some View {
         tabContent

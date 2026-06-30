@@ -17,6 +17,11 @@ final class TribeService: ObservableObject {
     /// the new post shows up without a manual pull-to-refresh.
     @Published private(set) var feedRevision: Int = 0
 
+    /// Bump when external events (e.g. hub WebSocket) should reload feeds.
+    func notifyFeedChanged() {
+        feedRevision &+= 1
+    }
+
     private let state: AppState
 
     /// Hub profile rows keyed by TID. Filled on demand before mapping
