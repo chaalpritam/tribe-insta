@@ -15,9 +15,10 @@ settings:
     ENABLE_USER_SCRIPT_SANDBOXING: NO
     GENERATE_INFOPLIST_FILE: YES
 
+# Local package at tribe-core-swift/ (symlink or submodule). Run `make setup` once after clone.
 packages:
   TribeCore:
-    path: ../tribe-core-swift
+    path: tribe-core-swift
 
 targets:
   tribe-insta:

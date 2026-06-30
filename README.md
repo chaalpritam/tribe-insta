@@ -32,19 +32,29 @@ See [`PLAN.md`](PLAN.md) for cross-repo history.
 
 ## Running
 
-`tribe-insta` depends on the shared [`tribe-core-swift`](../tribe-core-swift) package via a **local path** (`../tribe-core-swift` relative to this directory). In the TribeEco monorepo that folder is already next to `tribe-insta`. If you cloned `tribe-insta` alone, check out `tribe-core-swift` as a sibling:
+`tribe-insta` depends on [`tribe-core-swift`](https://github.com/chaalpritam/tribe-core-swift) as a **local Swift package** at `tribe-core-swift/` (inside this repo).
 
-```sh
-git clone https://github.com/chaalpritam/tribe-core-swift.git ../tribe-core-swift
-```
+**First time (required before opening Xcode):**
 
 ```sh
 cd tribe-insta
-xcodegen generate   # if you changed Project.yml or added Swift files
-open tribe-insta.xcodeproj
-# File → Packages → Resolve Package Versions (if Xcode shows "Missing package product")
-# Pick an iPhone simulator and ⌘R
+make setup    # symlinks ../tribe-core-swift in the monorepo, or errors with clone instructions
 ```
+
+Then open the project:
+
+```sh
+open tribe-insta.xcodeproj
+```
+
+If Xcode shows **Missing package product 'TribeCore'**:
+
+1. Quit Xcode
+2. Run `make setup` again (ensures `tribe-core-swift/Package.swift` exists)
+3. Run `make generate` (re-applies the TribeCore package link xcodegen omits)
+4. Reopen the project → **File → Packages → Reset Package Caches** → **Resolve Package Versions**
+
+Standalone clone (no monorepo sibling): `git clone https://github.com/chaalpritam/tribe-core-swift.git tribe-core-swift` then `make generate`.
 
 On a physical device, set the hub URL to your Mac's LAN IP (`tribe share`) in onboarding or Settings.
 

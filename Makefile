@@ -1,4 +1,4 @@
-.PHONY: generate build clean archive bump-build testflight-upload
+.PHONY: generate build clean archive bump-build testflight-upload setup
 
 SIMULATOR_DEST ?= generic/platform=iOS Simulator
 ARCHIVE_PATH ?= build/tribe-insta.xcarchive
@@ -6,8 +6,16 @@ EXPORT_PATH ?= build/export
 SCHEME = tribe-insta
 PROJECT = tribe-insta.xcodeproj
 
+setup:
+	@chmod +x scripts/setup.sh
+	@./scripts/setup.sh
+	@$(MAKE) generate
+
 generate:
+	@chmod +x scripts/setup.sh scripts/patch-tribecore-package.sh
+	@./scripts/setup.sh
 	xcodegen generate
+	@./scripts/patch-tribecore-package.sh
 
 build: generate
 	xcodebuild -scheme $(SCHEME) \

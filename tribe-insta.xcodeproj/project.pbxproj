@@ -104,7 +104,7 @@
 		7FF8947B7D2B3839D699545C /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		82A9CF87FC934C8BD8DD62A6 /* HubLiveSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubLiveSession.swift; sourceTree = "<group>"; };
 		850381B68D63406C2AAF19A1 /* InboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxView.swift; sourceTree = "<group>"; };
-		8EF04D2E05CD1A1A3ED2C01C /* tribe-core-swift */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "tribe-core-swift"; path = "../tribe-core-swift"; sourceTree = SOURCE_ROOT; };
+		8EF04D2E05CD1A1A3ED2C01C /* tribe-core-swift */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "tribe-core-swift"; sourceTree = SOURCE_ROOT; };
 		9428C5C386D4D3D3EA5690BE /* PostDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostDetailView.swift; sourceTree = "<group>"; };
 		96DB0BC39DDB308F616917A2 /* StoryViewersSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryViewersSheet.swift; sourceTree = "<group>"; };
 		A6EC51FB9984553A7DC3D276 /* NewMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMessageView.swift; sourceTree = "<group>"; };
@@ -112,7 +112,7 @@
 		ABD44C7ADEA47E8AA16D2206 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
 		ACFAB5506BC9F74ABE67C06F /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
 		AEC57F82D41E29AFF80E8BE1 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
-		AED3A331ACFBF79948CC5780 /* tribe-insta.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "tribe-insta.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AED3A331ACFBF79948CC5780 /* tribe-insta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "tribe-insta.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFBF03F77D570DA94B027FDF /* CreateAppKeyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateAppKeyView.swift; sourceTree = "<group>"; };
 		B52796C8C2C8EEE86606B209 /* PostDetailLoaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostDetailLoaderView.swift; sourceTree = "<group>"; };
 		C6235CA66164DF0F6AA843A4 /* SavedPostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedPostsView.swift; sourceTree = "<group>"; };
@@ -452,7 +452,6 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					DBBFFA94EFD2FDDF103EACCF = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -467,7 +466,7 @@
 			mainGroup = C579C19CEB43874077C452E7;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				3D4BAF28D5D2B1CC373D4E94 /* XCLocalSwiftPackageReference "../tribe-core-swift" */,
+				399B870AFB22F059D3B546BE /* XCLocalSwiftPackageReference "tribe-core-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4FF64B128169CA6AF317194C /* Products */;
@@ -763,16 +762,16 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		3D4BAF28D5D2B1CC373D4E94 /* XCLocalSwiftPackageReference "../tribe-core-swift" */ = {
+		399B870AFB22F059D3B546BE /* XCLocalSwiftPackageReference "tribe-core-swift" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = "../tribe-core-swift";
+			relativePath = "tribe-core-swift";
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		91FEB0D2154542FEBC2BCCE7 /* TribeCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 3D4BAF28D5D2B1CC373D4E94 /* XCLocalSwiftPackageReference "../tribe-core-swift" */;
+			package = 399B870AFB22F059D3B546BE /* XCLocalSwiftPackageReference "tribe-core-swift" */;
 			productName = TribeCore;
 		};
 /* End XCSwiftPackageProductDependency section */

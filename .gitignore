@@ -15,8 +15,9 @@ DerivedData/
 .swiftpm/
 Packages/
 Package.pins
-Package.resolved
-*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+# Keep Package.resolved for Xcode GUI package resolution.
+# tribe-core-swift symlink is monorepo-only (see `make setup`).
+tribe-core-swift
 
 # macOS
 .DS_Store
