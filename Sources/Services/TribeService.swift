@@ -637,8 +637,8 @@ final class TribeService: ObservableObject {
             let users = try await api.searchUsers(username)
             if let match = users.first(where: {
                 ($0.username ?? "").caseInsensitiveCompare(username) == .orderedSame
-            }), let tid = match.tid, tid != state.myTID {
-                tids.append(tid)
+            }), match.tid != state.myTID {
+                tids.append(match.tid)
             }
         }
         return tids

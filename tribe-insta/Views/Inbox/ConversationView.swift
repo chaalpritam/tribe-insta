@@ -1,10 +1,7 @@
 import SwiftUI
+import TribeCore
 
-/// One DM thread. Loads /v1/dm/messages/<conversationId>, decrypts
-/// each row via TribeService, and renders bubbles. Composer at the
-/// bottom calls service.sendDM(to:text:) — wraps the same NaCl-box
-/// pipeline the StoryViewer reply composer uses but without bundling
-/// a story_hash.
+/// One DM thread.
 struct ConversationView: View {
     let conversation: DMConversation
 

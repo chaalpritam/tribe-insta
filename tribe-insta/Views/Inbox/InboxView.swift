@@ -1,10 +1,7 @@
 import SwiftUI
+import TribeCore
 
-/// 1:1 conversations list. Reads /v1/dm/conversations/<myTID>;
-/// tapping a row opens the ConversationView. Composing a brand-new
-/// thread isn't supported here yet — the only entry point into
-/// tribe-insta's DM surface today is replying to a story, which lands
-/// the conversation in the list on the next refresh.
+/// 1:1 conversations list.
 struct InboxView: View {
     var embeddedInTab: Bool = false
 

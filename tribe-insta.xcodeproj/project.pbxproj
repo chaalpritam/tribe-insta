@@ -7,32 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		039411B5C56C0D201C315282 /* ERClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5138EC468DB58D727CE158D8 /* ERClient.swift */; };
-		0733CCC8D3BB521BF9359716 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8991DA3BD25129264587BC7 /* Keychain.swift */; };
 		0813468C3E10C389E07CAFF0 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = F873556BF7C278BD30F1A68F /* Config.swift */; };
+		0B5C47B07E5742F33E60AA85 /* HubLiveSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82A9CF87FC934C8BD8DD62A6 /* HubLiveSession.swift */; };
 		0EF28E8E319838B3ACBC1091 /* ProfileTabIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688A748858C800BE5C4496B3 /* ProfileTabIcon.swift */; };
 		1152B5682EC2EFF1D0618CD9 /* CameraCaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3503C00670BB9A72B6D3D4 /* CameraCaptureSession.swift */; };
 		12EF0699EE38ED712852FE8F /* UserProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20CE453357CEB8A90191504 /* UserProfileView.swift */; };
-		1636AB28330C7134950ED056 /* Decoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = B85C3D80731BBCB76899A69D /* Decoding.swift */; };
-		1A22E507584C7651962696E6 /* NaClBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349B8482789F4DA1A8DB47AC /* NaClBox.swift */; };
 		215F6AF919A4D6A9F1E81DFF /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F961821373441611829F21A /* ConversationView.swift */; };
 		268876531F10D5E557ED996B /* CommentsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40FD2B62867153C415309B25 /* CommentsSheet.swift */; };
 		2732CFA6A4D223CAF2C2BCF6 /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C6A72759E18E5B29928193 /* FeedView.swift */; };
 		33D348283C32B990DCEA6F70 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF18C41C8AF4264D9D5D209 /* ActivityView.swift */; };
-		360CEF865AAD5254C9C62381 /* HubStory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A587FA9932FEA98A7C746DE /* HubStory.swift */; };
-		39ECF5798BEC935E4D799C97 /* InteractionReads.swift in Sources */ = {isa = PBXBuildFile; fileRef = E31CE2078128FB4E7987FF55 /* InteractionReads.swift */; };
 		3A13ECB8FF958330E38AFADD /* StoryViewersSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DB0BC39DDB308F616917A2 /* StoryViewersSheet.swift */; };
 		3C3AC197A72313057DAF37A3 /* ExportBackupSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 748EC287B379D8709ADE0179 /* ExportBackupSheet.swift */; };
 		3CBB1D737F7C77881134351C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5762092836E62153CF535193 /* SettingsView.swift */; };
 		3CC8A49FF07F7ACDB4D5CC17 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A11EDA9969ED7F1C447D2B5 /* ProfileView.swift */; };
-		419BA4AFDD692CB15FC8553B /* DMKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 433680C1FDBA175C1B44007D /* DMKey.swift */; };
-		42087F64CCAF228B71C72D37 /* BIP39.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39C67176067AD0A7119FB854 /* BIP39.swift */; };
 		42E36A2B537DC514847678E9 /* HubPresets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45B3EACE18C86A5F7C6F4304 /* HubPresets.swift */; };
-		45AABE6EC1225DA1EA61AFFA /* HubUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C8C449589D7E5DAD3E7395 /* HubUser.swift */; };
 		4B54DD60985183A70EDE5EFA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5D23AB15529AF90AE90CA10B /* Assets.xcassets */; };
 		51FB05FF22FE26D93F6F78E5 /* StoriesBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01BB8D54A58E9D7D32E5030E /* StoriesBar.swift */; };
 		56FF4CA4EEEF86B3CD6EBFBA /* RestoreBackupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E54AD3E8F6194ACDF0E54B /* RestoreBackupView.swift */; };
-		5BB510AFD12BCF730494785F /* AppKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91614C9851F38B640268C473 /* AppKey.swift */; };
 		5CA662F702EAE9A67853A529 /* HomeShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB1DCFEAD32919A4F4C869B /* HomeShellView.swift */; };
 		5D16B838289EBA0B84563CB9 /* ImportIdentityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BC4ADBAE8BADDA3297678FC /* ImportIdentityView.swift */; };
 		5D4DA61F347C9E7058BABEE7 /* ConnectFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770AC8912C3EABFB22CA7788 /* ConnectFlow.swift */; };
@@ -49,42 +40,32 @@
 		8A0AD0595E2F7350E96D25FF /* PostCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE07FBDAF932C8EC5EC80125 /* PostCardView.swift */; };
 		8BFEE59E2776CB463776A355 /* PostDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9428C5C386D4D3D3EA5690BE /* PostDetailView.swift */; };
 		966A36E1ED72C0CB5B56D214 /* InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 850381B68D63406C2AAF19A1 /* InboxView.swift */; };
-		96FC8170AA83A1ECE22DA6EF /* Endpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366E13BF5ABBADAB8DD0D734 /* Endpoints.swift */; };
 		97472013023256AFA973C100 /* SavedPostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6235CA66164DF0F6AA843A4 /* SavedPostsView.swift */; };
 		9A40640FAEC9234764FE5263 /* PostDetailLoaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B52796C8C2C8EEE86606B209 /* PostDetailLoaderView.swift */; };
 		9A796E6986461AD098A8AA01 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A771F656A1073AF6D68CCC4 /* ContentView.swift */; };
 		9C216A361EA8DDD9EF26E3D9 /* VideoCompressor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE19E8296B6CC9A54274929B /* VideoCompressor.swift */; };
 		9DC6C57C1CAB556808E094EA /* CreateAppKeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFBF03F77D570DA94B027FDF /* CreateAppKeyView.swift */; };
 		9E1364878F89E3CCE1565156 /* ReportContentSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7877AB01887C350AAED0E4AE /* ReportContentSheet.swift */; };
-		A3C229F11C44D9D1728E7E97 /* DM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85CE8B6E0FA48A1C0F73D75E /* DM.swift */; };
 		A4D6AE34347BDA089B037488 /* NewMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6EC51FB9984553A7DC3D276 /* NewMessageView.swift */; };
-		AA9064A5BD445A1BA4B5A077 /* Channel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1CB66D4019F4131F69FD8D5 /* Channel.swift */; };
 		AB2819B95C03E02595CB1BAF /* RemoteImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABB26542888FBA6F11C8DA89 /* RemoteImage.swift */; };
-		B24289EFDCA921F1B5876743 /* Tweet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CC39B2DE02155DAFAF439AC /* Tweet.swift */; };
 		B6F2FAD59140BB68B1972A6C /* QRLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C35FE01B6A3085479DE5957 /* QRLoginView.swift */; };
 		B7906C6D0870B559FA0C3E40 /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEC57F82D41E29AFF80E8BE1 /* MockData.swift */; };
 		B825066F7F56E178E06254C7 /* InstaBottomTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F11959C28E602CC824EA7F5 /* InstaBottomTabBar.swift */; };
 		B8F7256B91977524874A3D1C /* InteractionCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19EB8D84E2D97EE898BDDA85 /* InteractionCache.swift */; };
 		BCA02F8A70BE55833EB0F1F9 /* ReelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B432D60EEE8563932D9E1F /* ReelsView.swift */; };
-		C0289D1D4DB711FEA4CEC91C /* Publish.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2DEE8C26A80C98AD2AD2DE6 /* Publish.swift */; };
 		C30173ABDBA2A5EDD5B7BB82 /* FollowListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CD7AB27DCF37BC47225C11A /* FollowListView.swift */; };
 		C3BA52075CA785ECF677793E /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACFAB5506BC9F74ABE67C06F /* AvatarView.swift */; };
 		C58B26F259EC70DC7FD6D2C4 /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44CCAD5488CEB24090DC519B /* DeepLink.swift */; };
 		C684BCB17466927560C16622 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FF8947B7D2B3839D699545C /* EditProfileView.swift */; };
-		CB6323898E7E0152E03D11AF /* BackupFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = B156025342DFB447C415AD55 /* BackupFile.swift */; };
-		CE854ADDF2FFAC95DAB88BAA /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DD0C90AC138518A4CB9D48A /* Notification.swift */; };
+		CAAF90CC1A90F6A482CEB367 /* TribeCore in Frameworks */ = {isa = PBXBuildFile; productRef = 91FEB0D2154542FEBC2BCCE7 /* TribeCore */; };
 		DA934F0BA46AF6B124DA0556 /* BlockedUsersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4254CF5C2C31729DE9468E27 /* BlockedUsersView.swift */; };
-		DAE656F649563323175B5F14 /* MessageSigner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5BB8885336BB25A72208523 /* MessageSigner.swift */; };
 		DE5E092EA86F5E02B4830063 /* tribe_instaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 705F9EA1D7556BB8DFFFF72A /* tribe_instaApp.swift */; };
-		E1FC3A2BED4F926CD7F1A1F5 /* SolanaHD.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6AEDE4347AD5887336EAFA0 /* SolanaHD.swift */; };
 		E5D2F1FD4E37080776F86134 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E124A34A6BC73A59311C6209 /* RootView.swift */; };
 		E7B6467FDFDE69F59A155CDA /* TabBarAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F6C687C1BA8ABBB01DD7ED0 /* TabBarAppearance.swift */; };
 		E8A95050FBAB2C4B1D94C822 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A07A1015F363C4F1FFDFD47 /* Theme.swift */; };
 		EB404370415968B53A5CA2D8 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01ED941587CB7875CE1F31D4 /* AppState.swift */; };
-		F259EE005A55164ADF716071 /* HubClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6CDA2097CDB91D6A056D5E /* HubClient.swift */; };
 		F95850A5D1F31CD25FC85F92 /* TribeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F46117E408E4432DC1701A8 /* TribeService.swift */; };
 		FA5BB35945291B94B308A3AF /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1B77F18FCED6D64D54729A /* Formatters.swift */; };
-		FD989B8260B3545E717C9805 /* Blake3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 711D4AE40462E6FD20E14705 /* Blake3.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -96,33 +77,23 @@
 		1748A17D48F8C0CDEF844A66 /* CameraComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraComposerView.swift; sourceTree = "<group>"; };
 		19EB8D84E2D97EE898BDDA85 /* InteractionCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionCache.swift; sourceTree = "<group>"; };
 		1A771F656A1073AF6D68CCC4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		1DD0C90AC138518A4CB9D48A /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		2A23AA6166BA75C4602DC265 /* StoryViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryViewer.swift; sourceTree = "<group>"; };
 		2BF18C41C8AF4264D9D5D209 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
 		2CD7AB27DCF37BC47225C11A /* FollowListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowListView.swift; sourceTree = "<group>"; };
 		2F961821373441611829F21A /* ConversationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationView.swift; sourceTree = "<group>"; };
-		33C8C449589D7E5DAD3E7395 /* HubUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubUser.swift; sourceTree = "<group>"; };
-		349B8482789F4DA1A8DB47AC /* NaClBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaClBox.swift; sourceTree = "<group>"; };
-		366E13BF5ABBADAB8DD0D734 /* Endpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Endpoints.swift; sourceTree = "<group>"; };
 		37F1DAB1F2BA669A5A40B402 /* CreatePostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostView.swift; sourceTree = "<group>"; };
-		39C67176067AD0A7119FB854 /* BIP39.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BIP39.swift; sourceTree = "<group>"; };
-		3F6CDA2097CDB91D6A056D5E /* HubClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubClient.swift; sourceTree = "<group>"; };
 		40FD2B62867153C415309B25 /* CommentsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsSheet.swift; sourceTree = "<group>"; };
 		4254CF5C2C31729DE9468E27 /* BlockedUsersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedUsersView.swift; sourceTree = "<group>"; };
-		433680C1FDBA175C1B44007D /* DMKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMKey.swift; sourceTree = "<group>"; };
 		44CCAD5488CEB24090DC519B /* DeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLink.swift; sourceTree = "<group>"; };
 		45B3EACE18C86A5F7C6F4304 /* HubPresets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubPresets.swift; sourceTree = "<group>"; };
 		48C6A72759E18E5B29928193 /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
 		4C1B77F18FCED6D64D54729A /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
-		5138EC468DB58D727CE158D8 /* ERClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ERClient.swift; sourceTree = "<group>"; };
 		5762092836E62153CF535193 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		5BB1DCFEAD32919A4F4C869B /* HomeShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeShellView.swift; sourceTree = "<group>"; };
-		5CC39B2DE02155DAFAF439AC /* Tweet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tweet.swift; sourceTree = "<group>"; };
 		5D23AB15529AF90AE90CA10B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		688A748858C800BE5C4496B3 /* ProfileTabIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileTabIcon.swift; sourceTree = "<group>"; };
 		6C35FE01B6A3085479DE5957 /* QRLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRLoginView.swift; sourceTree = "<group>"; };
 		705F9EA1D7556BB8DFFFF72A /* tribe_instaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = tribe_instaApp.swift; sourceTree = "<group>"; };
-		711D4AE40462E6FD20E14705 /* Blake3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blake3.swift; sourceTree = "<group>"; };
 		748EC287B379D8709ADE0179 /* ExportBackupSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportBackupSheet.swift; sourceTree = "<group>"; };
 		770AC8912C3EABFB22CA7788 /* ConnectFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectFlow.swift; sourceTree = "<group>"; };
 		7877AB01887C350AAED0E4AE /* ReportContentSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportContentSheet.swift; sourceTree = "<group>"; };
@@ -131,28 +102,20 @@
 		7DEB0274F626646364A99D4C /* FollowButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowButton.swift; sourceTree = "<group>"; };
 		7F11959C28E602CC824EA7F5 /* InstaBottomTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstaBottomTabBar.swift; sourceTree = "<group>"; };
 		7FF8947B7D2B3839D699545C /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
+		82A9CF87FC934C8BD8DD62A6 /* HubLiveSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubLiveSession.swift; sourceTree = "<group>"; };
 		850381B68D63406C2AAF19A1 /* InboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxView.swift; sourceTree = "<group>"; };
-		85CE8B6E0FA48A1C0F73D75E /* DM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DM.swift; sourceTree = "<group>"; };
-		91614C9851F38B640268C473 /* AppKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppKey.swift; sourceTree = "<group>"; };
+		8EF04D2E05CD1A1A3ED2C01C /* tribe-core-swift */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "tribe-core-swift"; path = "../tribe-core-swift"; sourceTree = SOURCE_ROOT; };
 		9428C5C386D4D3D3EA5690BE /* PostDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostDetailView.swift; sourceTree = "<group>"; };
 		96DB0BC39DDB308F616917A2 /* StoryViewersSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryViewersSheet.swift; sourceTree = "<group>"; };
-		9A587FA9932FEA98A7C746DE /* HubStory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubStory.swift; sourceTree = "<group>"; };
-		A1CB66D4019F4131F69FD8D5 /* Channel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Channel.swift; sourceTree = "<group>"; };
-		A6AEDE4347AD5887336EAFA0 /* SolanaHD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolanaHD.swift; sourceTree = "<group>"; };
 		A6EC51FB9984553A7DC3D276 /* NewMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMessageView.swift; sourceTree = "<group>"; };
 		ABB26542888FBA6F11C8DA89 /* RemoteImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteImage.swift; sourceTree = "<group>"; };
 		ABD44C7ADEA47E8AA16D2206 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
 		ACFAB5506BC9F74ABE67C06F /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
 		AEC57F82D41E29AFF80E8BE1 /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
-		AED3A331ACFBF79948CC5780 /* tribe-insta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "tribe-insta.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AED3A331ACFBF79948CC5780 /* tribe-insta.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "tribe-insta.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFBF03F77D570DA94B027FDF /* CreateAppKeyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateAppKeyView.swift; sourceTree = "<group>"; };
-		B156025342DFB447C415AD55 /* BackupFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupFile.swift; sourceTree = "<group>"; };
 		B52796C8C2C8EEE86606B209 /* PostDetailLoaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostDetailLoaderView.swift; sourceTree = "<group>"; };
-		B5BB8885336BB25A72208523 /* MessageSigner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSigner.swift; sourceTree = "<group>"; };
-		B85C3D80731BBCB76899A69D /* Decoding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Decoding.swift; sourceTree = "<group>"; };
-		C2DEE8C26A80C98AD2AD2DE6 /* Publish.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Publish.swift; sourceTree = "<group>"; };
 		C6235CA66164DF0F6AA843A4 /* SavedPostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedPostsView.swift; sourceTree = "<group>"; };
-		C8991DA3BD25129264587BC7 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		CB730953EADBADA4D3DA29EB /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		D05F971EFBCD58469EB8A6D0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D20CE453357CEB8A90191504 /* UserProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileView.swift; sourceTree = "<group>"; };
@@ -161,7 +124,6 @@
 		DEB8015AC387871EE32BAAF3 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		E124A34A6BC73A59311C6209 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		E290B9978FCB07E54CFBC076 /* UserRestrictionsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserRestrictionsStore.swift; sourceTree = "<group>"; };
-		E31CE2078128FB4E7987FF55 /* InteractionReads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionReads.swift; sourceTree = "<group>"; };
 		E4F95840020ADF47659C8F82 /* MediaCapturePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCapturePicker.swift; sourceTree = "<group>"; };
 		EA3503C00670BB9A72B6D3D4 /* CameraCaptureSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureSession.swift; sourceTree = "<group>"; };
 		EDB4140ADA741CB9710C5AA4 /* SeedPhraseConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedPhraseConnectView.swift; sourceTree = "<group>"; };
@@ -170,7 +132,26 @@
 		F873556BF7C278BD30F1A68F /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		AE24B6084F0BE2489CD0F1A3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAAF90CC1A90F6A482CEB367 /* TribeCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
+		097EB133B2344FCBAA654E9B /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				8EF04D2E05CD1A1A3ED2C01C /* tribe-core-swift */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
 		0FA118ED3240A4B92C865507 /* Services */ = {
 			isa = PBXGroup;
 			children = (
@@ -232,10 +213,7 @@
 		2EE8EB8D5967D1205B687CEF /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				8E97C7E21F7B8F2ECFEBC058 /* API */,
 				B4C03B3C9973476999F2D769 /* Config */,
-				B9E8C84C265D2F7214524438 /* Crypto */,
-				4F37A9D77AEA608B7732A77D /* Models */,
 				39B5401614E844B5E31AF784 /* Navigation */,
 				0FA118ED3240A4B92C865507 /* Services */,
 				2238992205FD7F2AC974AA3A /* State */,
@@ -283,20 +261,6 @@
 			path = Util;
 			sourceTree = "<group>";
 		};
-		4F37A9D77AEA608B7732A77D /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				A1CB66D4019F4131F69FD8D5 /* Channel.swift */,
-				B85C3D80731BBCB76899A69D /* Decoding.swift */,
-				85CE8B6E0FA48A1C0F73D75E /* DM.swift */,
-				9A587FA9932FEA98A7C746DE /* HubStory.swift */,
-				33C8C449589D7E5DAD3E7395 /* HubUser.swift */,
-				1DD0C90AC138518A4CB9D48A /* Notification.swift */,
-				5CC39B2DE02155DAFAF439AC /* Tweet.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
 		4FF64B128169CA6AF317194C /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -329,6 +293,7 @@
 			isa = PBXGroup;
 			children = (
 				5BB1DCFEAD32919A4F4C869B /* HomeShellView.swift */,
+				82A9CF87FC934C8BD8DD62A6 /* HubLiveSession.swift */,
 				7F11959C28E602CC824EA7F5 /* InstaBottomTabBar.swift */,
 				688A748858C800BE5C4496B3 /* ProfileTabIcon.swift */,
 				E124A34A6BC73A59311C6209 /* RootView.swift */,
@@ -361,18 +326,6 @@
 			path = Search;
 			sourceTree = "<group>";
 		};
-		8E97C7E21F7B8F2ECFEBC058 /* API */ = {
-			isa = PBXGroup;
-			children = (
-				366E13BF5ABBADAB8DD0D734 /* Endpoints.swift */,
-				5138EC468DB58D727CE158D8 /* ERClient.swift */,
-				3F6CDA2097CDB91D6A056D5E /* HubClient.swift */,
-				E31CE2078128FB4E7987FF55 /* InteractionReads.swift */,
-				C2DEE8C26A80C98AD2AD2DE6 /* Publish.swift */,
-			);
-			path = API;
-			sourceTree = "<group>";
-		};
 		ABD416F55A22678D3EC605A5 /* Theme */ = {
 			isa = PBXGroup;
 			children = (
@@ -400,22 +353,6 @@
 			path = Config;
 			sourceTree = "<group>";
 		};
-		B9E8C84C265D2F7214524438 /* Crypto */ = {
-			isa = PBXGroup;
-			children = (
-				91614C9851F38B640268C473 /* AppKey.swift */,
-				B156025342DFB447C415AD55 /* BackupFile.swift */,
-				39C67176067AD0A7119FB854 /* BIP39.swift */,
-				711D4AE40462E6FD20E14705 /* Blake3.swift */,
-				433680C1FDBA175C1B44007D /* DMKey.swift */,
-				C8991DA3BD25129264587BC7 /* Keychain.swift */,
-				B5BB8885336BB25A72208523 /* MessageSigner.swift */,
-				349B8482789F4DA1A8DB47AC /* NaClBox.swift */,
-				A6AEDE4347AD5887336EAFA0 /* SolanaHD.swift */,
-			);
-			path = Crypto;
-			sourceTree = "<group>";
-		};
 		BDEB561CFBA7E89E2E8CFF72 /* Mock */ = {
 			isa = PBXGroup;
 			children = (
@@ -427,6 +364,7 @@
 		C579C19CEB43874077C452E7 = {
 			isa = PBXGroup;
 			children = (
+				097EB133B2344FCBAA654E9B /* Packages */,
 				2EE8EB8D5967D1205B687CEF /* Sources */,
 				2BFA6C17346411E7EFAF2B42 /* tribe-insta */,
 				4FF64B128169CA6AF317194C /* Products */,
@@ -490,6 +428,7 @@
 			buildPhases = (
 				FA9C523D6F579F245D938E52 /* Sources */,
 				A2661BF73D8BD11830E43B72 /* Resources */,
+				AE24B6084F0BE2489CD0F1A3 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -497,6 +436,7 @@
 			);
 			name = "tribe-insta";
 			packageProductDependencies = (
+				91FEB0D2154542FEBC2BCCE7 /* TribeCore */,
 			);
 			productName = "tribe-insta";
 			productReference = AED3A331ACFBF79948CC5780 /* tribe-insta.app */;
@@ -512,6 +452,7 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					DBBFFA94EFD2FDDF103EACCF = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -525,6 +466,9 @@
 			);
 			mainGroup = C579C19CEB43874077C452E7;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				3D4BAF28D5D2B1CC373D4E94 /* XCLocalSwiftPackageReference "../tribe-core-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4FF64B128169CA6AF317194C /* Products */;
 			projectDirPath = "";
@@ -552,16 +496,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				33D348283C32B990DCEA6F70 /* ActivityView.swift in Sources */,
-				5BB510AFD12BCF730494785F /* AppKey.swift in Sources */,
 				EB404370415968B53A5CA2D8 /* AppState.swift in Sources */,
 				C3BA52075CA785ECF677793E /* AvatarView.swift in Sources */,
-				42087F64CCAF228B71C72D37 /* BIP39.swift in Sources */,
-				CB6323898E7E0152E03D11AF /* BackupFile.swift in Sources */,
-				FD989B8260B3545E717C9805 /* Blake3.swift in Sources */,
 				DA934F0BA46AF6B124DA0556 /* BlockedUsersView.swift in Sources */,
 				1152B5682EC2EFF1D0618CD9 /* CameraCaptureSession.swift in Sources */,
 				7BF7E8982ED44559ADB0899E /* CameraComposerView.swift in Sources */,
-				AA9064A5BD445A1BA4B5A077 /* Channel.swift in Sources */,
 				268876531F10D5E557ED996B /* CommentsSheet.swift in Sources */,
 				0813468C3E10C389E07CAFF0 /* Config.swift in Sources */,
 				5D4DA61F347C9E7058BABEE7 /* ConnectFlow.swift in Sources */,
@@ -569,43 +508,30 @@
 				215F6AF919A4D6A9F1E81DFF /* ConversationView.swift in Sources */,
 				9DC6C57C1CAB556808E094EA /* CreateAppKeyView.swift in Sources */,
 				65938C69F08655DF99C7F4A0 /* CreatePostView.swift in Sources */,
-				A3C229F11C44D9D1728E7E97 /* DM.swift in Sources */,
-				419BA4AFDD692CB15FC8553B /* DMKey.swift in Sources */,
-				1636AB28330C7134950ED056 /* Decoding.swift in Sources */,
 				C58B26F259EC70DC7FD6D2C4 /* DeepLink.swift in Sources */,
-				039411B5C56C0D201C315282 /* ERClient.swift in Sources */,
 				C684BCB17466927560C16622 /* EditProfileView.swift in Sources */,
-				96FC8170AA83A1ECE22DA6EF /* Endpoints.swift in Sources */,
 				3C3AC197A72313057DAF37A3 /* ExportBackupSheet.swift in Sources */,
 				2732CFA6A4D223CAF2C2BCF6 /* FeedView.swift in Sources */,
 				71B5458512AD879AE8C548EC /* FollowButton.swift in Sources */,
 				C30173ABDBA2A5EDD5B7BB82 /* FollowListView.swift in Sources */,
 				FA5BB35945291B94B308A3AF /* Formatters.swift in Sources */,
 				5CA662F702EAE9A67853A529 /* HomeShellView.swift in Sources */,
-				F259EE005A55164ADF716071 /* HubClient.swift in Sources */,
+				0B5C47B07E5742F33E60AA85 /* HubLiveSession.swift in Sources */,
 				42E36A2B537DC514847678E9 /* HubPresets.swift in Sources */,
-				360CEF865AAD5254C9C62381 /* HubStory.swift in Sources */,
-				45AABE6EC1225DA1EA61AFFA /* HubUser.swift in Sources */,
 				811BCA9736E2822C4398D95B /* ImageCache.swift in Sources */,
 				5D16B838289EBA0B84563CB9 /* ImportIdentityView.swift in Sources */,
 				966A36E1ED72C0CB5B56D214 /* InboxView.swift in Sources */,
 				B825066F7F56E178E06254C7 /* InstaBottomTabBar.swift in Sources */,
 				B8F7256B91977524874A3D1C /* InteractionCache.swift in Sources */,
-				39ECF5798BEC935E4D799C97 /* InteractionReads.swift in Sources */,
-				0733CCC8D3BB521BF9359716 /* Keychain.swift in Sources */,
 				7B0BEF23BF27E653909E0AFF /* MediaCapturePicker.swift in Sources */,
-				DAE656F649563323175B5F14 /* MessageSigner.swift in Sources */,
 				B7906C6D0870B559FA0C3E40 /* MockData.swift in Sources */,
 				7E2B916BB3DE4259782C4549 /* Models.swift in Sources */,
-				1A22E507584C7651962696E6 /* NaClBox.swift in Sources */,
 				A4D6AE34347BDA089B037488 /* NewMessageView.swift in Sources */,
-				CE854ADDF2FFAC95DAB88BAA /* Notification.swift in Sources */,
 				8A0AD0595E2F7350E96D25FF /* PostCardView.swift in Sources */,
 				9A40640FAEC9234764FE5263 /* PostDetailLoaderView.swift in Sources */,
 				8BFEE59E2776CB463776A355 /* PostDetailView.swift in Sources */,
 				0EF28E8E319838B3ACBC1091 /* ProfileTabIcon.swift in Sources */,
 				3CC8A49FF07F7ACDB4D5CC17 /* ProfileView.swift in Sources */,
-				C0289D1D4DB711FEA4CEC91C /* Publish.swift in Sources */,
 				B6F2FAD59140BB68B1972A6C /* QRLoginView.swift in Sources */,
 				BCA02F8A70BE55833EB0F1F9 /* ReelsView.swift in Sources */,
 				AB2819B95C03E02595CB1BAF /* RemoteImage.swift in Sources */,
@@ -616,14 +542,12 @@
 				6532D713B99F89900DA11804 /* SearchView.swift in Sources */,
 				864396FB49EA277D6400BE3D /* SeedPhraseConnectView.swift in Sources */,
 				3CBB1D737F7C77881134351C /* SettingsView.swift in Sources */,
-				E1FC3A2BED4F926CD7F1A1F5 /* SolanaHD.swift in Sources */,
 				51FB05FF22FE26D93F6F78E5 /* StoriesBar.swift in Sources */,
 				8096ED1EE93EC518954E966E /* StoryViewer.swift in Sources */,
 				3A13ECB8FF958330E38AFADD /* StoryViewersSheet.swift in Sources */,
 				E7B6467FDFDE69F59A155CDA /* TabBarAppearance.swift in Sources */,
 				E8A95050FBAB2C4B1D94C822 /* Theme.swift in Sources */,
 				F95850A5D1F31CD25FC85F92 /* TribeService.swift in Sources */,
-				B24289EFDCA921F1B5876743 /* Tweet.swift in Sources */,
 				12EF0699EE38ED712852FE8F /* UserProfileView.swift in Sources */,
 				68A13C3E1C257FF60F95EEE9 /* UserRestrictionsStore.swift in Sources */,
 				9C216A361EA8DDD9EF26E3D9 /* VideoCompressor.swift in Sources */,
@@ -703,7 +627,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = "tribe-insta/Info.plist";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Tribe uses the camera to capture photos and videos, and to scan pairing QRs from tribe-app.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Tribe uses the camera to capture photos and videos, and to scan pairing QRs from tribe-twitter-app.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Tribe uses the microphone when recording video for reels and stories.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Tribe accesses your photo library to choose images and videos to share.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -797,7 +721,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = "tribe-insta/Info.plist";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Tribe uses the camera to capture photos and videos, and to scan pairing QRs from tribe-app.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Tribe uses the camera to capture photos and videos, and to scan pairing QRs from tribe-twitter-app.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Tribe uses the microphone when recording video for reels and stories.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Tribe accesses your photo library to choose images and videos to share.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -837,6 +761,20 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		3D4BAF28D5D2B1CC373D4E94 /* XCLocalSwiftPackageReference "../tribe-core-swift" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../tribe-core-swift";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		91FEB0D2154542FEBC2BCCE7 /* TribeCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TribeCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 4B94F9E8870134AF8D035164 /* Project object */;
 }
