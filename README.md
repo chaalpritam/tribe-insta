@@ -32,10 +32,17 @@ See [`PLAN.md`](PLAN.md) for cross-repo history.
 
 ## Running
 
+`tribe-insta` depends on the shared [`tribe-core-swift`](../tribe-core-swift) package via a **local path** (`../tribe-core-swift` relative to this directory). In the TribeEco monorepo that folder is already next to `tribe-insta`. If you cloned `tribe-insta` alone, check out `tribe-core-swift` as a sibling:
+
+```sh
+git clone https://github.com/chaalpritam/tribe-core-swift.git ../tribe-core-swift
+```
+
 ```sh
 cd tribe-insta
 xcodegen generate   # if you changed Project.yml or added Swift files
 open tribe-insta.xcodeproj
+# File → Packages → Resolve Package Versions (if Xcode shows "Missing package product")
 # Pick an iPhone simulator and ⌘R
 ```
 

@@ -772,6 +772,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		91FEB0D2154542FEBC2BCCE7 /* TribeCore */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 3D4BAF28D5D2B1CC373D4E94 /* XCLocalSwiftPackageReference "../tribe-core-swift" */;
 			productName = TribeCore;
 		};
 /* End XCSwiftPackageProductDependency section */
