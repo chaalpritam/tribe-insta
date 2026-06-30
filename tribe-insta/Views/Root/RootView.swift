@@ -5,11 +5,12 @@ import SwiftUI
 /// SwiftUI `TabView` so iOS 26's floating Liquid Glass tab bar never appears.
 struct RootView: View {
     enum Tab: Hashable {
-        case feed, search, messages, reels, profile
+        case feed, search, reels, profile
     }
 
     @EnvironmentObject private var state: AppState
     @State private var selection: Tab = .feed
+    @State private var showCreateSheet = false
     @State private var showBackupReminder = false
     @AppStorage("tribe.hasSeenBackupReminder") private var hasSeenBackupReminder = false
 
@@ -21,9 +22,15 @@ struct RootView: View {
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 InstaBottomTabBar(
                     selection: $selection,
-                    unreadDMCount: state.unreadDMCount,
-                    profileAvatarURL: state.myAvatarURL
+                    profileAvatarURL: state.myAvatarURL,
+                    onCreateTap: { showCreateSheet = true }
                 )
+            }
+            .sheet(isPresented: $showCreateSheet) {
+                CreatePostView(onPublished: {
+                    showCreateSheet = false
+                    selection = .feed
+                })
             }
             .task { await state.refreshBadgeCounts() }
             .onChange(of: selection) { _, _ in
@@ -57,8 +64,6 @@ struct RootView: View {
             HomeShellView()
         case .search:
             SearchView()
-        case .messages:
-            InboxView(embeddedInTab: true)
         case .reels:
             ReelsView()
         case .profile:

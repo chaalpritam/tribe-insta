@@ -1,11 +1,11 @@
 import SwiftUI
 
-/// Fixed bottom tab bar matching Instagram: full-width, opaque, icon-only,
-/// no Liquid Glass floating platter. Used instead of SwiftUI `TabView`.
+/// Fixed bottom tab bar matching Instagram: Home, Search, Create (+),
+/// Reels, Profile. DMs live on the feed top bar.
 struct InstaBottomTabBar: View {
     @Binding var selection: RootView.Tab
-    let unreadDMCount: Int
     let profileAvatarURL: URL?
+    let onCreateTap: () -> Void
 
     private let barHeight: CGFloat = 49
 
@@ -25,13 +25,7 @@ struct InstaBottomTabBar: View {
                     icon: "magnifyingglass",
                     selectedIcon: "magnifyingglass"
                 )
-                tabButton(
-                    tab: .messages,
-                    label: "Messages",
-                    icon: "paperplane",
-                    selectedIcon: "paperplane.fill",
-                    badge: unreadDMCount
-                )
+                createButton
                 tabButton(
                     tab: .reels,
                     label: "Reels",
@@ -46,6 +40,20 @@ struct InstaBottomTabBar: View {
             Color(.systemBackground)
                 .ignoresSafeArea(edges: .bottom)
         }
+    }
+
+    private var createButton: some View {
+        Button(action: onCreateTap) {
+            Image(systemName: "plus.square")
+                .font(.system(size: 26))
+                .symbolRenderingMode(.monochrome)
+                .foregroundStyle(Color.primary)
+                .frame(maxWidth: .infinity)
+                .frame(height: barHeight)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Create")
     }
 
     private var profileButton: some View {
@@ -69,30 +77,19 @@ struct InstaBottomTabBar: View {
         tab: RootView.Tab,
         label: String,
         icon: String,
-        selectedIcon: String,
-        badge: Int = 0
+        selectedIcon: String
     ) -> some View {
         let isSelected = selection == tab
         return Button {
             selection = tab
         } label: {
-            ZStack(alignment: .topTrailing) {
-                Image(systemName: isSelected ? selectedIcon : icon)
-                    .font(.system(size: 26))
-                    .symbolRenderingMode(.monochrome)
-                    .foregroundStyle(isSelected ? Color.primary : Color.secondary)
-                if badge > 0 {
-                    Text(badge > 9 ? "9+" : "\(badge)")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(3)
-                        .background(Color.red, in: Circle())
-                        .offset(x: 10, y: -6)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: barHeight)
-            .contentShape(Rectangle())
+            Image(systemName: isSelected ? selectedIcon : icon)
+                .font(.system(size: 26))
+                .symbolRenderingMode(.monochrome)
+                .foregroundStyle(isSelected ? Color.primary : Color.secondary)
+                .frame(maxWidth: .infinity)
+                .frame(height: barHeight)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)

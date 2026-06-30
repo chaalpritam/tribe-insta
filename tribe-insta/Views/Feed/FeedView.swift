@@ -22,7 +22,10 @@ struct FeedView: View {
     var body: some View {
         NavigationStack(path: $profilePath) {
             VStack(spacing: 0) {
-                FeedTopBar(unreadCount: state.unreadNotificationCount)
+                FeedTopBar(
+                    unreadCount: state.unreadNotificationCount,
+                    unreadDMCount: state.unreadDMCount
+                )
                 ScrollView {
                     LazyVStack(spacing: 0, pinnedViews: []) {
                         if let me = state.myTID.map(currentUserViewModel) {
@@ -222,6 +225,7 @@ struct FeedView: View {
 /// bypasses that pipeline.
 private struct FeedTopBar: View {
     let unreadCount: Int
+    let unreadDMCount: Int
 
     var body: some View {
         HStack(spacing: 0) {
@@ -229,6 +233,24 @@ private struct FeedTopBar: View {
                 .font(.system(.title2, design: .serif).italic())
                 .fontWeight(.bold)
             Spacer()
+            NavigationLink {
+                InboxView(embeddedInTab: false)
+            } label: {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: "paperplane")
+                        .imageScale(.large)
+                    if unreadDMCount > 0 {
+                        Text(unreadDMCount > 9 ? "9+" : "\(unreadDMCount)")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(3)
+                            .background(Color.red, in: Circle())
+                            .offset(x: 8, y: -8)
+                    }
+                }
+            }
+            .foregroundStyle(.primary)
+            .padding(.trailing, 18)
             NavigationLink {
                 ActivityView()
             } label: {
