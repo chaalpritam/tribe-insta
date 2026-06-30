@@ -20,7 +20,7 @@ Native SwiftUI iOS client for the [TribeEco](https://github.com/chaalpritam/Trib
 
 **Tier 3 (app):** deep links (`tribeinsta://`), image cache, content report sheet, legal links, backup reminder, TestFlight pipeline — see [`TESTFLIGHT.md`](TESTFLIGHT.md).
 
-**Not yet (needs protocol / infra):** hub-wide block/mute, push notifications, S3 video CDN, Instagram Live, TribeCore API/Models extraction.
+**Not yet (needs protocol / infra):** push notifications, S3 video CDN, Instagram Live, TribeCore API/Models extraction.
 
 See [`PLAN.md`](PLAN.md) for cross-repo history.
 

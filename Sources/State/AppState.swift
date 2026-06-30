@@ -121,6 +121,7 @@ final class AppState: ObservableObject {
         self.interactions = InteractionCache()
         self.restrictions = UserRestrictionsStore()
         self.interactions.attach(to: self)
+        self.restrictions.attach(to: self)
         self.custodyKey = try? CustodyKey.load()
 
         // Best-effort fetch of profile metadata so the UI shows the
@@ -129,6 +130,7 @@ final class AppState: ObservableObject {
             Task { [weak self] in
                 await self?.refreshIdentityMetadata(tid: tid)
                 await self?.interactions.refresh()
+                await self?.restrictions.refresh()
             }
         }
     }
@@ -144,6 +146,7 @@ final class AppState: ObservableObject {
         _ = try await ensureDMKey()
         await refreshIdentityMetadata(tid: tid)
         await interactions.refresh()
+        await restrictions.refresh()
         recomputePhase()
     }
 
@@ -156,6 +159,7 @@ final class AppState: ObservableObject {
         Task { [weak self] in
             await self?.refreshIdentityMetadata(tid: tid)
             await self?.interactions.refresh()
+            await self?.restrictions.refresh()
         }
     }
 
@@ -173,6 +177,7 @@ final class AppState: ObservableObject {
         myAvatarURL = nil
         walletAddress = nil
         interactions.clear()
+        restrictions.clear()
     }
 
     /// Lazy-load (or create + persist) the DM keypair. Surfaces that

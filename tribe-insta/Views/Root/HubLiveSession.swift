@@ -29,9 +29,12 @@ struct HubLiveSession: View {
                 switch event {
                 case .connected:
                     await state.refreshBadgeCounts()
-                case .newMessage:
+                case .newMessage(_, _, let type):
                     service.notifyFeedChanged()
                     await state.refreshBadgeCounts()
+                    if let type, (35...38).contains(type) {
+                        await state.restrictions.refresh()
+                    }
                 case .newDM:
                     await state.refreshBadgeCounts()
                 case .disconnected:

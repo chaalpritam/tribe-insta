@@ -26,7 +26,7 @@ struct UserProfileView: View {
                 showActions: tid != state.myTID,
                 isBlocked: state.restrictions.isBlocked(tid),
                 onBack: { dismiss() },
-                onUnblock: { state.restrictions.unblock(tid) },
+                onUnblock: { Task { await state.restrictions.unblock(tid) } },
                 onMute: { showMuteConfirm = true },
                 onBlock: { showBlockConfirm = true }
             )
@@ -48,19 +48,22 @@ struct UserProfileView: View {
         .toolbar(.hidden, for: .navigationBar)
         .confirmationDialog("Block @\(user?.username ?? tid)?", isPresented: $showBlockConfirm) {
             Button("Block", role: .destructive) {
-                state.restrictions.block(tid)
+                Task {
+                    await state.restrictions.block(tid)
+                    dismiss()
+                }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Their posts, stories, and reels will be hidden on this device.")
+            Text("Their posts, stories, and reels will be hidden for your account.")
         }
         .confirmationDialog("Mute @\(user?.username ?? tid)?", isPresented: $showMuteConfirm) {
             Button("Mute", role: .destructive) {
-                state.restrictions.mute(tid)
+                Task { await state.restrictions.mute(tid) }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Their posts won't appear in your feed on this device. You can still visit their profile.")
+            Text("Their posts won't appear in your feed. You can still visit their profile.")
         }
         .navigationDestination(for: Post.self) { post in
             PostDetailView(post: post)
