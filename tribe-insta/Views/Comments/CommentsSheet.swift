@@ -75,7 +75,7 @@ struct CommentsSheet: View {
 
     private var composer: some View {
         HStack(spacing: 12) {
-            AvatarView(url: state.walletAddress.flatMap { _ in nil }, size: 32)
+            AvatarView(url: state.myAvatarURL, size: 32)
             TextField("Add a comment…", text: $draft, axis: .vertical)
                 .lineLimit(1...4)
                 .focused($draftFocused)
