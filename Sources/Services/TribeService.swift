@@ -78,12 +78,13 @@ final class TribeService: ObservableObject {
     /// surface the photo count directly.
     func profile(tid: String) async throws -> (user: User, posts: [Post], reels: [Reel]) {
         async let hubUser = api.fetchUser(tid)
-        async let tweets = api.fetchTweets(tid: tid)
-        let allTweets = try await tweets
-        await cacheUsers(for: allTweets)
-        var posts = allTweets.compactMap(mapToPost)
+        async let photoTweets = api.fetchTweets(tid: tid, postKind: "photo")
+        async let reelTweets = api.fetchTweets(tid: tid, postKind: "reel")
+        let (photos, reelsRaw) = try await (photoTweets, reelTweets)
+        await cacheUsers(for: photos + reelsRaw)
+        var posts = photos.compactMap(mapToPost)
         posts = await enrichFollowing(on: posts)
-        let reels = allTweets.compactMap(mapToReel)
+        let reels = reelsRaw.compactMap(mapToReel)
         var u = mapToUser(try await hubUser)
         u.postsCount = posts.count
         if let me = state.myTID, me != tid,
@@ -723,10 +724,10 @@ final class TribeService: ObservableObject {
         )
     }
 
-    /// Tweet → Post. Returns nil for tweets without image embeds —
-    /// those aren't IG-shaped content and don't belong in the feed
-    /// or the profile grid.
+    /// Tweet → Post. Photo posts only — reels (`post_kind='reel'`) belong
+    /// on the reels tab, not the photo grid.
     private func mapToPost(_ tweet: Tweet) -> Post? {
+        if tweet.postKind == "reel" { return nil }
         let images = (tweet.embeds ?? []).compactMap(api.resolveMediaURL)
         guard !images.isEmpty else { return nil }
         let author = authorUser(tid: tweet.tid, username: tweet.username)
@@ -785,10 +786,11 @@ final class TribeService: ObservableObject {
         )
     }
 
-    /// Tweet (post_kind='reel') → view-model Reel. Drops tweets
-    /// without any embed since there's no video to play.
+    /// Tweet (`post_kind='reel'`) → view-model Reel. Plain photos and
+    /// legacy video posts without the reel discriminator are excluded.
     private func mapToReel(_ tweet: Tweet) -> Reel? {
-        guard let firstEmbed = tweet.embeds?.first,
+        guard tweet.postKind == "reel",
+              let firstEmbed = tweet.embeds?.first,
               let videoURL = api.resolveMediaURL(firstEmbed)
         else { return nil }
         let author = authorUser(tid: tweet.tid, username: tweet.username)
