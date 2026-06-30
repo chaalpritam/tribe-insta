@@ -19,6 +19,10 @@ final class TribeService: ObservableObject {
 
     private let state: AppState
 
+    /// Hub profile rows keyed by TID. Filled on demand before mapping
+    /// tweets/reels so feed cards show avatars without per-row fetches.
+    private var userCache: [String: HubUser] = [:]
+
     init(state: AppState) {
         self.state = state
     }
@@ -37,6 +41,7 @@ final class TribeService: ObservableObject {
     /// filter and we stop downloading text-only rows.
     func feed(limit: Int = 30) async throws -> [Post] {
         let page = try await api.fetchFeedPage(limit: limit)
+        await cacheUsers(for: page.tweets)
         var posts = page.tweets.compactMap(mapToPost)
         posts = await enrichFollowing(on: posts)
         return filterForFeed(posts)
@@ -46,6 +51,7 @@ final class TribeService: ObservableObject {
     /// pages exist.
     func feedPage(cursor: String? = nil, limit: Int = 20) async throws -> (posts: [Post], nextCursor: String?) {
         let page = try await api.fetchFeedPage(cursor: cursor, limit: limit)
+        await cacheUsers(for: page.tweets)
         var posts = page.tweets.compactMap(mapToPost)
         posts = await enrichFollowing(on: posts)
         return (filterForFeed(posts), page.cursor)
@@ -54,6 +60,7 @@ final class TribeService: ObservableObject {
     /// Load a single photo post by protocol hash (post detail, deep links).
     func post(hash: String) async throws -> Post? {
         let tweet = try await api.fetchTweet(hash: hash)
+        await cacheUsers(for: [tweet])
         guard var post = mapToPost(tweet) else { return nil }
         let enriched = await enrichFollowing(on: [post])
         post = enriched[0]
@@ -71,6 +78,7 @@ final class TribeService: ObservableObject {
         async let hubUser = api.fetchUser(tid)
         async let tweets = api.fetchTweets(tid: tid)
         let allTweets = try await tweets
+        await cacheUsers(for: allTweets)
         var posts = allTweets.compactMap(mapToPost)
         posts = await enrichFollowing(on: posts)
         let reels = allTweets.compactMap(mapToReel)
@@ -95,6 +103,7 @@ final class TribeService: ObservableObject {
     func savedPosts() async throws -> [Post] {
         let (_, tid, _) = try requireSignedIn()
         let tweets = try await api.fetchBookmarkedTweets(tid: tid)
+        await cacheUsers(for: tweets)
         return tweets.compactMap(mapToPost)
     }
 
@@ -114,7 +123,9 @@ final class TribeService: ObservableObject {
         let trimmed = query.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return [] }
         let q = trimmed.hasPrefix("#") ? String(trimmed.dropFirst()) : trimmed
-        var posts = try await api.searchTweets(q).compactMap(mapToPost)
+        let tweets = try await api.searchTweets(q)
+        await cacheUsers(for: tweets)
+        var posts = tweets.compactMap(mapToPost)
         posts = await enrichFollowing(on: posts)
         return filterForFeed(posts)
     }
@@ -244,6 +255,7 @@ final class TribeService: ObservableObject {
         sort: HubClient.ReelsSort = .engagement
     ) async throws -> (reels: [Reel], nextCursor: String?) {
         let page = try await api.fetchReelsPage(cursor: cursor, limit: limit, sort: sort)
+        await cacheUsers(for: page.reels)
         return (filterReels(page.reels.compactMap(mapToReel)), page.cursor)
     }
 
@@ -462,13 +474,10 @@ final class TribeService: ObservableObject {
     /// so we don't filter the way `mapToPost` does.
     func replies(forPostHash hash: String) async throws -> [Comment] {
         let tweets = try await api.fetchReplies(hash: hash)
+        await cacheUsers(for: tweets)
         return tweets.map { reply in
             Comment(
-                author: User(
-                    tid: reply.tid,
-                    username: reply.username ?? "tid\(reply.tid)",
-                    displayName: reply.username ?? "TID #\(reply.tid)"
-                ),
+                author: authorUser(tid: reply.tid, username: reply.username),
                 text: reply.text ?? "",
                 createdAt: reply.timestamp,
                 likesCount: 0
@@ -641,18 +650,46 @@ final class TribeService: ObservableObject {
 
     // MARK: - Mapping
 
+    /// Parallel-fetch `/v1/user/:tid` for authors not yet in `userCache`.
+    private func cacheUsers(for tweets: [Tweet]) async {
+        await cacheUsers(tids: Set(tweets.map(\.tid)))
+    }
+
+    private func cacheUsers(tids: Set<String>) async {
+        let missing = tids.filter { userCache[$0] == nil }
+        guard !missing.isEmpty else { return }
+        await withTaskGroup(of: (String, HubUser?).self) { group in
+            for tid in missing {
+                group.addTask { [api] in
+                    let user = try? await api.fetchUser(tid)
+                    return (tid, user)
+                }
+            }
+            for await (tid, user) in group {
+                if let user { userCache[tid] = user }
+            }
+        }
+    }
+
+    private func authorUser(tid: String, username: String?) -> User {
+        if let hub = userCache[tid] {
+            return mapToUser(hub)
+        }
+        return User(
+            tid: tid,
+            username: username ?? "tid\(tid)",
+            displayName: username ?? "TID #\(tid)",
+            avatarURL: nil
+        )
+    }
+
     /// Tweet → Post. Returns nil for tweets without image embeds —
     /// those aren't IG-shaped content and don't belong in the feed
     /// or the profile grid.
     private func mapToPost(_ tweet: Tweet) -> Post? {
         let images = (tweet.embeds ?? []).compactMap(api.resolveMediaURL)
         guard !images.isEmpty else { return nil }
-        let author = User(
-            tid: tweet.tid,
-            username: tweet.username ?? "tid\(tweet.tid)",
-            displayName: tweet.username ?? "TID #\(tweet.tid)",
-            avatarURL: nil
-        )
+        let author = authorUser(tid: tweet.tid, username: tweet.username)
         return Post(
             hash: tweet.hash,
             author: author,
@@ -714,11 +751,7 @@ final class TribeService: ObservableObject {
         guard let firstEmbed = tweet.embeds?.first,
               let videoURL = api.resolveMediaURL(firstEmbed)
         else { return nil }
-        let author = User(
-            tid: tweet.tid,
-            username: tweet.username ?? "tid\(tweet.tid)",
-            displayName: tweet.username ?? "TID #\(tweet.tid)"
-        )
+        let author = authorUser(tid: tweet.tid, username: tweet.username)
         return Reel(
             hash: tweet.hash,
             author: author,
