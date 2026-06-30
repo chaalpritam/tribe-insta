@@ -101,6 +101,15 @@ final class TribeService: ObservableObject {
         try await api.fetchFollowing(tid).map(mapToUser)
     }
 
+    /// Photo posts by other authors that tag this TID in mentions[].
+    func taggedPosts(tid: String) async throws -> [Post] {
+        let page = try await api.fetchTaggedPosts(tid: tid)
+        await cacheUsers(for: page.tweets)
+        var posts = page.tweets.compactMap(mapToPost)
+        posts = await enrichFollowing(on: posts)
+        return posts
+    }
+
     /// Bookmarked photo posts for the signed-in user.
     func savedPosts() async throws -> [Post] {
         let (_, tid, _) = try requireSignedIn()
@@ -592,6 +601,7 @@ final class TribeService: ObservableObject {
             )
             mediaRefs.append("media:\(hash)")
         }
+        let mentionTIDs = try await resolveMentionTIDs(in: caption)
         let hash = try await api.publishTweet(
             text: caption,
             as: appKey,
@@ -599,6 +609,7 @@ final class TribeService: ObservableObject {
             parentHash: nil,
             channelId: nil,
             embeds: mediaRefs,
+            mentions: mentionTIDs.isEmpty ? nil : mentionTIDs,
             postKind: "photo"
         )
         feedRevision &+= 1
@@ -606,6 +617,32 @@ final class TribeService: ObservableObject {
     }
 
     // MARK: - Write helpers
+
+    /// Resolve `@username` tokens in caption text to hub TIDs. Skips
+    /// self-mentions. Used when publishing photo posts so tagged users
+    /// surface on their profile's tagged tab.
+    private func resolveMentionTIDs(in text: String) async throws -> [String] {
+        let regex = try NSRegularExpression(pattern: #"@([a-zA-Z0-9_]+)"#)
+        let range = NSRange(text.startIndex..., in: text)
+        var usernames: [String] = []
+        regex.enumerateMatches(in: text, range: range) { match, _, _ in
+            guard let match, match.numberOfRanges > 1,
+                  let r = Range(match.range(at: 1), in: text) else { return }
+            usernames.append(String(text[r]))
+        }
+        let unique = Array(Set(usernames))
+        guard !unique.isEmpty else { return [] }
+        var tids: [String] = []
+        for username in unique {
+            let users = try await api.searchUsers(username)
+            if let match = users.first(where: {
+                ($0.username ?? "").caseInsensitiveCompare(username) == .orderedSame
+            }), let tid = match.tid, tid != state.myTID {
+                tids.append(tid)
+            }
+        }
+        return tids
+    }
 
     private func requireWriteContext(post: Post) throws -> (AppKey, String, String) {
         let (appKey, tid, _) = try requireSignedIn()

@@ -9,6 +9,7 @@ struct ProfileView: View {
     @State private var user: User?
     @State private var posts: [Post] = []
     @State private var reels: [Reel] = []
+    @State private var taggedPosts: [Post] = []
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
     @State private var selectedTab: ProfileTab = .grid
@@ -92,18 +93,22 @@ struct ProfileView: View {
         case .reels:
             ProfileReelsGrid(reels: reels)
         case .tagged:
-            taggedPlaceholder
+            if taggedPosts.isEmpty {
+                taggedEmptyState
+            } else {
+                ProfilePostsGrid(posts: taggedPosts)
+            }
         }
     }
 
-    private var taggedPlaceholder: some View {
+    private var taggedEmptyState: some View {
         VStack(spacing: 8) {
             Image(systemName: "person.crop.square")
                 .font(.title2)
                 .foregroundStyle(.secondary)
             Text("No tagged posts")
                 .font(.headline)
-            Text("Photos you're tagged in aren't indexed on the hub yet.")
+            Text("When people tag you in photos, they'll show up here.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -144,11 +149,14 @@ struct ProfileView: View {
         isLoading = true
         errorMessage = nil
         do {
-            let (u, p, r) = try await service.profile(tid: tid)
+            async let profileResult = service.profile(tid: tid)
+            async let tagged = service.taggedPosts(tid: tid)
+            let (u, p, r) = try await profileResult
             user = u
             state.myAvatarURL = u.avatarURL
             posts = p
             reels = r
+            taggedPosts = try await tagged
         } catch {
             errorMessage = error.localizedDescription
         }
